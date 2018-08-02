@@ -21,16 +21,18 @@ class RunSingularityInLotus(luigi.Task):
         singularityImgDir = self.pathRoots["singularityImgDir"]
 
         realRawDir = os.path.dirname(os.path.realpath(inputFile))
+        basketDir = os.path.dirname(inputFile)
         rawFilename = os.path.basename(inputFile)
         productId = wc.getProductIdFromLocalSourceFile(inputFile)
 
-        singularityCmd = "{}/singularity exec --bind {}:/data/sentinel/1 --bind {}:/data/states --bind {}:/data/raw --bind {}:/data/dem --bind {}:/data/processed {}/s1-ard-processor.simg /app/exec.sh --productId {} --sourceFile '/data/raw/{}' --outputFile '{}'" \
+        singularityCmd = "{}/singularity exec --bind {}:/data/sentinel/1 --bind {}:/data/states --bind {}:/data/raw --bind {}:/data/dem --bind {}:/data/processed --bind {}:/data/basket {}/s1-ard-processor.simg /app/exec.sh --productId {} --sourceFile '/data/raw/{}' --outputFile '{}'" \
             .format(singularityDir,
                 processingFileRoot,
                 stateFileRoot,
                 realRawDir,
                 demDir,
                 outputDir,
+                basketDir,
                 singularityImgDir,
                 productId,
                 rawFilename,
