@@ -13,8 +13,8 @@ log = logging.getLogger('luigi-interface')
 @requires(GetS1ScenesByDate)
 class PrepareBasket(luigi.Task):
     pathRoots = luigi.DictParameter()
-    startDate = luigi.Parameter()
-    endDate = luigi.Parameter()
+    startDate = luigi.DateParameter()
+    endDate = luigi.DateParameter()
 
     def run(self):
         basketPath = self.createBasket()
@@ -35,7 +35,7 @@ class PrepareBasket(luigi.Task):
 
     def createBasket(self):
         timestamp = str(datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
-        basketName = self.startDate + "-" + self.endDate + "_" + timestamp
+        basketName = str(self.startDate) + "-" + str(self.endDate) + "_" + timestamp
         basketPath = os.path.join(self.pathRoots["basketRoot"], basketName)
 
         if not os.path.exists(basketPath):
