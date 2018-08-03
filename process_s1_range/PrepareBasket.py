@@ -6,11 +6,11 @@ import datetime
 import process_s1_basket.common as wc
 from luigi.util import requires
 from os.path import join
-from process_s1_range.GetS1ScenesByDate import GetS1ScenesByDate
+from process_s1_range.GetS1ScenesByDateAndPolygon import GetS1ScenesByDateAndPolygon
 
 log = logging.getLogger('luigi-interface')
 
-@requires(GetS1ScenesByDate)
+@requires(GetS1ScenesByDateAndPolygon)
 class PrepareBasket(luigi.Task):
     pathRoots = luigi.DictParameter()
     startDate = luigi.DateParameter()
