@@ -4,7 +4,6 @@ import json
 import os
 import datetime
 import process_s1_basket.common as wc
-import workflow_common.polygon as polygon
 import feedparser
 import requests
 import copy
