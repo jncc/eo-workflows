@@ -6,11 +6,9 @@ import datetime
 import workflow_common.common as wc
 from luigi.util import requires
 from os.path import join
-from process_s1_range.GetS1ScenesByDateAndPolygon import GetS1ScenesByDateAndPolygon
 
 log = logging.getLogger('luigi-interface')
 
-@requires(GetS1ScenesByDateAndPolygon)
 class PrepareBasket(luigi.Task):
     pathRoots = luigi.DictParameter()
     startDate = luigi.DateParameter()
@@ -22,9 +20,9 @@ class PrepareBasket(luigi.Task):
         with self.input().open('r') as inputFile:
             data = json.load(inputFile)
 
-            for filePath in data["rawList"]:
-                log.info("Adding " + filePath + " to the basket")
-                os.symlink(filePath, os.path.join(basketPath, os.path.basename(filePath)))
+            for product in data["products"]:
+                log.info("Adding " + product["productId"] + " to the basket")
+                os.symlink(product["filepath"], os.path.join(basketPath, os.path.basename(product["filepath"])))
 
         output = {
             'basketPath': basketPath

@@ -8,7 +8,7 @@ import glob
 import workflow_common.common as wc
 import re
 from luigi.util import requires
-from process_s1_range.PrepareBasket import PrepareBasket
+from process_s1_range_with_retries.PrepareBasket import PrepareBasket
 from os.path import join
 
 log = logging.getLogger('luigi-interface')
@@ -86,6 +86,10 @@ class SubmitJobs(luigi.Task):
                     singularityScriptPath
                 )
 
+            output = {
+                "jobIds": list()
+            }
+
             try:
                 output = subprocess.check_output(
                     lotusCmd,
@@ -94,13 +98,19 @@ class SubmitJobs(luigi.Task):
 
                 regex = '[0-9]{7,}' # job ID is 7 digits
                 match = re.search(regex, output.decode("utf-8"))
+                jobId = match.group(0)
 
-                log.info("Successfully submitted lotus job <%s> for %s using command: %s", match.group(0), inputFile, lotusCmd)
+                log.info("Successfully submitted lotus job <%s> for %s using command: %s", jobId, inputFile, lotusCmd)
+
+                output["jobIds"][filename] = jobId
             except subprocess.CalledProcessError as e:
                 errStr = "command '{}' return with error (code {}): {}".format(e.cmd, e.returncode, e.output)
                 log.error(errStr)
                 raise RuntimeError(errStr)
 
+            with self.output().open('w') as out:
+                out.write(json.dumps(output))
+
     def output(self):
         outputFolder = self.pathRoots["processingDir"]
-        return wc.getLocalStateTarget(outputFolder, "lotus_submit_success.json")
+        return wc.getLocalStateTarget(outputFolder, "SubmittedJobs.json")
