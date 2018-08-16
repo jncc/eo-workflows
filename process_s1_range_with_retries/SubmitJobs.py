@@ -18,7 +18,6 @@ log = logging.getLogger('luigi-interface')
 @requires(GetProductsToProcessList)
 class SubmitJobs(luigi.Task):
     pathRoots = luigi.DictParameter()
-    outputFile = luigi.Parameter()
     maxScenes = luigi.IntParameter()
     startDate = luigi.DateParameter()
     endDate = luigi.DateParameter()
