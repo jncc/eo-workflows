@@ -43,7 +43,7 @@ class SubmitJobs(luigi.Task):
                 inputFile = product["filepath"],
                 outputFilePattern = self.outputFilePattern,
                 pathRoots = self.pathRoots,
-                removeSourceFile = True,
+                removeSourceFile = False,
                 testProcessing = self.testProcessing
             )
 
