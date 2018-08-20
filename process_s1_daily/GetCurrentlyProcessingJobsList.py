@@ -8,7 +8,7 @@ import subprocess
 import re
 from os.path import join
 from luigi.util import requires
-from process_s1_range_with_retries.SetupDirectories import SetupDirectories
+from process_s1_daily.SetupDirectories import SetupDirectories
 
 log = logging.getLogger('luigi-interface')
 
@@ -19,7 +19,7 @@ class GetCurrentlyProcessingJobsList(luigi.Task):
     testProcessing = luigi.BoolParameter(default = False)
     
     def run(self):
-        processingProducts = {
+        output = {
             "jobIds": []
         }
 
@@ -38,18 +38,17 @@ class GetCurrentlyProcessingJobsList(luigi.Task):
             for jobId in re.findall(pattern, outputString):
                 jobIds.append(jobId)
 
-            processingProducts["jobIds"] = jobIds
+            output["jobIds"] = jobIds
         except subprocess.CalledProcessError as e:
             errStr = "command '{}' return with error (code {}): {}".format(e.cmd, e.returncode, e.output)
             log.error(errStr)
             raise RuntimeError(errStr)
 
         with self.output().open('w') as out:
-            out.write(json.dumps(processingProducts, indent=4))
+            out.write(wc.getFormattedJson(output))
 
     def output(self):
-        outputFolder = os.path.join(self.pathRoots["processingRootDir"], os.path.join(str(self.runDate), "states"))
-        return wc.getLocalStateTarget(outputFolder, "CurrentlyProcessingProductsList.json")
+        return wc.getLocalDatedStateTarget(self.pathRoots["processingRootDir"], self.runDate, "CurrentlyProcessingProductsList.json")
 
     def getTestJobList(self):
         return "JOBID     USER    STAT  QUEUE      FROM_HOST   EXEC_HOST   JOB_NAME   SUBMIT_TIME\

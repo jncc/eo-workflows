@@ -4,7 +4,7 @@ import logging
 import json
 import os
 import datetime
-from process_s1_range_with_retries.GetS1ProductsByDateAndPolygon import GetS1ProductsByDateAndPolygon
+from process_s1_daily.GetS1ProductsByDateAndPolygon import GetS1ProductsByDateAndPolygon
 from functional import seq
 from luigi.util import requires
 from os.path import join
@@ -17,7 +17,7 @@ class GetNewProductsList(luigi.Task):
     runDate = luigi.DateParameter()
 
     def run(self):
-        newProducts = {
+        output = {
             "queryWindow": {
                 "start": str(self.runDate),
                 "end": str(self.runDate)
@@ -29,11 +29,11 @@ class GetNewProductsList(luigi.Task):
             rawData = json.load(rawFile)
             entries = seq(rawData["products"])
 
-            newProducts["queryWindow"]["start"] = str(self.runDate)
-            newProducts["queryWindow"]["end"] = str(self.runDate)
+            output["queryWindow"]["start"] = str(self.runDate)
+            output["queryWindow"]["end"] = str(self.runDate)
 
             if not entries.empty():
-                newProducts["products"] = (
+                output["products"] = (
                     entries.map(lambda x: {
                         "productId": x["productId"],
                         "initialRunDate": x["initialRunDate"],
@@ -42,8 +42,7 @@ class GetNewProductsList(luigi.Task):
                     })).to_list()
 
         with self.output().open('w') as out:
-            out.write(json.dumps(newProducts, indent=4))
+            out.write(wc.getFormattedJson(output))
 
     def output(self):
-        outputFolder = os.path.join(self.pathRoots["processingRootDir"], os.path.join(str(self.runDate), "states"))
-        return wc.getLocalStateTarget(outputFolder, "NewProductsList.json")
+        return wc.getLocalDatedStateTarget(self.pathRoots["processingRootDir"], self.runDate, "NewProductsList.json")

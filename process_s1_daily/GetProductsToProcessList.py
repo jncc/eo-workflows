@@ -4,10 +4,10 @@ import json
 import os
 import datetime
 import workflow_common.common as wc
-from process_s1_range_with_retries.GetNewProductsList import GetNewProductsList
-from process_s1_range_with_retries.GetPreviousProductsList import GetPreviousProductsList
-from process_s1_range_with_retries.GetPreviousProcessedProductsList import GetPreviousProcessedProductsList
-from process_s1_range_with_retries.GetCurrentlyProcessingJobsList import GetCurrentlyProcessingJobsList
+from process_s1_daily.GetNewProductsList import GetNewProductsList
+from process_s1_daily.GetPreviousProductsList import GetPreviousProductsList
+from process_s1_daily.GetPreviousProcessedProductsList import GetPreviousProcessedProductsList
+from process_s1_daily.GetCurrentlyProcessingJobsList import GetCurrentlyProcessingJobsList
 from luigi.util import inherits
 from os.path import join
 from functional import seq
@@ -42,9 +42,10 @@ class GetProductsToProcessList(luigi.Task):
             previousProcessedProducts = json.load(previousProcessedProductsFile)
             currentlyProcessingJobs = json.load(currentlyProcessingJobsFile)
 
-            productsToProcess = {
+            output = {
+                "queryWindow": newProducts["queryWindow"],
                 "productsToProcess": [],
-                "incompleteProducts": []
+                "currentlyProcessingProducts": []
             }
 
             productsList = []
@@ -68,22 +69,26 @@ class GetProductsToProcessList(luigi.Task):
                                     .any())
                 ).to_list()
 
-            # Save products list where processing has not started or is incomplete
-            productsToProcess["incompleteProducts"] = productsList
-
-            # Remove currently processing products
-            productsList = (seq(productsList)
-                .filter_not(lambda x: seq(currentlyProcessingJobs["jobIds"])
+            # Save currently processing products to output in separate list
+            currentlyProcessingProducts = (seq(productsList)
+                .filter(lambda x: seq(currentlyProcessingJobs["jobIds"])
                                     .where(lambda y: y == x["jobId"])
                                     .any())
                 ).to_list()
+            output["currentlyProcessingProducts"] = currentlyProcessingProducts
 
-            productsToProcess["productsToProcess"] = productsList
+            # Remove currently processing products
+            productsList = (seq(productsList)
+                .filter_not(lambda x: seq(currentlyProcessingProducts)
+                                    .where(lambda y: y["productId"] == x["productId"])
+                                    .any())
+                ).to_list()
 
-        # Save list of products where processing has not started or has failed
+            output["productsToProcess"] = productsList
+
+        # Save list of products where (re)processing is needed
         with self.output().open('w') as out:
-            out.write(json.dumps(productsToProcess, indent=4))
+            out.write(wc.getFormattedJson(output))
 
     def output(self):
-        outputFolder = os.path.join(self.pathRoots["processingRootDir"], os.path.join(str(self.runDate), "states"))
-        return wc.getLocalStateTarget(outputFolder, "ProductsToProcessList.json")
+        return wc.getLocalDatedStateTarget(self.pathRoots["processingRootDir"], self.runDate, "ProductsToProcessList.json")

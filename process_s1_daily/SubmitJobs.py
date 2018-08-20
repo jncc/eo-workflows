@@ -6,7 +6,7 @@ import workflow_common.common as wc
 import shutil
 import copy
 from luigi.util import requires
-from process_s1_range_with_retries.GetProductsToProcessList import GetProductsToProcessList
+from process_s1_daily.GetProductsToProcessList import GetProductsToProcessList
 from workflow_common.RunJob import RunJob
 from os.path import join
 
@@ -24,14 +24,11 @@ class SubmitJobs(luigi.Task):
         with self.input().open('r') as stateFile:
             contents = json.load(stateFile)
 
-        submittedProducts = {
-            "queryWindow": {
-                "start": str(self.runDate),
-                "end": str(self.runDate)
-            },
+        output = {
+            "queryWindow": contents["queryWindow"],
             "maxScenes": self.maxScenes,
             "submittedProducts": [],
-            "incompleteProducts": contents["incompleteProducts"]
+            "currentlyProcessingProducts": contents["currentlyProcessingProducts"]
         }
 
         productsToSubmit = contents["productsToProcess"]
@@ -57,14 +54,14 @@ class SubmitJobs(luigi.Task):
 
             tasks.append(task)
 
-            submittedProduct = {
+            taskOutput = {
                 "productId": product["productId"],
                 "filepath": product["filepath"],
                 "initialRunDate": product["initialRunDate"],
-                "jobId": product["jobId"]
+                "jobId": None
             }
             
-            submittedProducts["submittedProducts"].append(submittedProduct)
+            output["submittedProducts"].append(taskOutput)
 
         yield tasks
 
@@ -72,17 +69,14 @@ class SubmitJobs(luigi.Task):
             with task.output().open('r') as taskOutput:
                 runJobOutput = json.load(taskOutput)
                 
-                for product in submittedProducts["submittedProducts"]:
+                for product in output["submittedProducts"]:
                     if runJobOutput["productId"] == product["productId"]:
-                        submittedProduct = {
-                            "jobId": runJobOutput["jobId"],
-                            "submitTime": runJobOutput["submitTime"]
-                        }
+                        product["jobId"] = runJobOutput["jobId"]
+                        product["submitTime"] = runJobOutput["submitTime"]
                         break
 
-        with self.output().open("w") as outFile:
-            outFile.write(json.dumps(submittedProducts, indent=4))
+        with self.output().open("w") as out:
+            out.write(wc.getFormattedJson(output))
 
     def output(self):
-        outputFolder = os.path.join(self.pathRoots["processingRootDir"], os.path.join(str(self.runDate), "states"))
-        return wc.getLocalStateTarget(outputFolder, "SubmittedJobs.json")
+        return wc.getLocalDatedStateTarget(self.pathRoots["processingRootDir"], self.runDate, "SubmittedJobs.json")

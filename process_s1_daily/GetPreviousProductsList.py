@@ -1,13 +1,12 @@
 import luigi
 import logging
-import json
 import os
 import datetime
 import workflow_common.common as wc
 from datetime import timedelta
 from os.path import join
 from luigi.util import requires
-from process_s1_range_with_retries.SetupDirectories import SetupDirectories
+from process_s1_daily.SetupDirectories import SetupDirectories
 
 log = logging.getLogger('luigi-interface')
 
@@ -18,5 +17,4 @@ class GetPreviousProductsList(luigi.ExternalTask):
 
     def output(self):
         previousRunDate = self.runDate - timedelta(days=1)
-        outputFolder = os.path.join(self.pathRoots["processingRootDir"], os.path.join(str(previousRunDate), "states"))
-        return wc.getLocalStateTarget(outputFolder, 'ProductsList.json')
+        return wc.getLocalDatedStateTarget(self.pathRoots["processingRootDir"], previousRunDate, 'ProductsList.json')

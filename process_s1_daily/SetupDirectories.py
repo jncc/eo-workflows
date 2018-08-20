@@ -27,8 +27,7 @@ class SetupDirectories(luigi.Task):
         }
 
         with self.output().open('w') as out:
-            out.write(json.dumps(output, indent=4))
+            out.write(wc.getFormattedJson(output))
 
     def output(self):
-        outputFolder = os.path.join(self.pathRoots["processingRootDir"], os.path.join(str(self.runDate), "states"))
-        return wc.getLocalStateTarget(outputFolder, "CreateStateFolder.json")
+        return wc.getLocalDatedStateTarget(self.pathRoots["processingRootDir"], self.runDate, "CreateStateFolder.json")

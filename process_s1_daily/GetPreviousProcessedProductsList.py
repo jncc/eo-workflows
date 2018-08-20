@@ -5,8 +5,8 @@ import os
 import datetime
 import workflow_common.common as wc
 from os.path import join
-from process_s1_range_with_retries.GetPreviousProductsList import GetPreviousProductsList
-from process_s1_range_with_retries.GetNewProductsList import GetNewProductsList
+from process_s1_daily.GetPreviousProductsList import GetPreviousProductsList
+from process_s1_daily.GetNewProductsList import GetNewProductsList
 from luigi.util import inherits
 from functional import seq
 
@@ -26,7 +26,7 @@ class GetPreviousProcessedProductsList(luigi.Task):
         return t
 
     def run(self):
-        previousProcessedProducts = {
+        output = {
             "products": []
         }
 
@@ -49,14 +49,13 @@ class GetPreviousProcessedProductsList(luigi.Task):
                 generatedProductPath = self.getPathFromProductId(self.pathRoots["outputDir"], ardProductId)
                 
                 if os.path.exists(generatedProductPath):
-                    previousProcessedProducts["products"].append(product)
+                    output["products"].append(product)
             
         with self.output().open('w') as out:
-            out.write(json.dumps(previousProcessedProducts, indent=4))
+            out.write(wc.getFormattedJson(output))
 
     def output(self):
-        outputFolder = os.path.join(self.pathRoots["processingRootDir"], os.path.join(str(self.runDate), "states"))
-        return wc.getLocalStateTarget(outputFolder, "PreviousProcessedProductsList.json")
+        return wc.getLocalDatedStateTarget(self.pathRoots["processingRootDir"], self.runDate, "PreviousProcessedProductsList.json")
 
     def getPathFromProductId(self, root, productId):
         year = productId[4:8]

@@ -10,7 +10,7 @@ import urllib
 from os.path import join
 from urllib.parse import urlencode
 from luigi.util import requires
-from process_s1_range_with_retries.SetupDirectories import SetupDirectories
+from process_s1_daily.SetupDirectories import SetupDirectories
 
 log = logging.getLogger('luigi-interface')
 
@@ -43,7 +43,7 @@ class GetS1ProductsByDateAndPolygon(luigi.Task):
         }
 
         with self.output().open('w') as out:
-            out.write(json.dumps(output, indent=4))
+            out.write(wc.getFormattedJson(output))
 
     def getBaseQuery(self, polygon, page):
         query = {
@@ -118,8 +118,7 @@ class GetS1ProductsByDateAndPolygon(luigi.Task):
         return productList
 
     def output(self):
-        outputFolder = os.path.join(self.pathRoots["processingRootDir"], os.path.join(str(self.runDate), "states"))
-        return wc.getLocalStateTarget(outputFolder, "getS1ProductsByDateAndPolygon.json")
+        return wc.getLocalDatedStateTarget(self.pathRoots["processingRootDir"], self.runDate, "getS1ProductsByDateAndPolygon.json")
 
 
 
