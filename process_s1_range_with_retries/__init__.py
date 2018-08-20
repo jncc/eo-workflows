@@ -1,3 +1,4 @@
+import process_s1_range_with_retries.SetupDirectories
 import process_s1_range_with_retries.GetS1ProductsByDateAndPolygon
 import process_s1_range_with_retries.GetNewProductsList
 import process_s1_range_with_retries.GetPreviousProductsList
@@ -5,3 +6,4 @@ import process_s1_range_with_retries.GetPreviousProcessedProductsList
 import process_s1_range_with_retries.GetCurrentlyProcessingJobsList
 import process_s1_range_with_retries.GetProductsToProcessList
 import process_s1_range_with_retries.SubmitJobs
+import process_s1_range_with_retries.GenerateProductsList

@@ -6,16 +6,21 @@ import datetime
 import workflow_common.common as wc
 from os.path import join
 from process_s1_range_with_retries.GetPreviousProductsList import GetPreviousProductsList
+from process_s1_range_with_retries.GetNewProductsList import GetNewProductsList
 from luigi.util import inherits
+from functional import seq
 
 log = logging.getLogger('luigi-interface')
 
+@inherits(GetNewProductsList)
 @inherits(GetPreviousProductsList)
 class GetPreviousProcessedProductsList(luigi.Task):
     pathRoots = luigi.DictParameter()
+    runDate = luigi.DateParameter()
 
     def requires(self):
         t = []
+        t.append(self.clone(GetNewProductsList))
         t.append(self.clone(GetPreviousProductsList))
 
         return t
@@ -25,10 +30,21 @@ class GetPreviousProcessedProductsList(luigi.Task):
             "products": []
         }
 
-        with self.input()[0].open('r') as previousProductsFile:
+        with self.input()[0].open('r') as newProductsFile, \
+            self.input()[1].open('r') as previousProductsFile:
+
+            newProducts = json.load(newProductsFile)
             previousProducts = json.load(previousProductsFile)
 
-            for product in previousProducts["products"]:
+            productsToCheck = []
+            productsToCheck.extend(newProducts["products"])
+            productsToCheck.extend(previousProducts["products"])
+
+            productsToCheck = (seq(productsToCheck)
+                .distinct_by(lambda x: x["productId"])
+                ).to_list()
+
+            for product in productsToCheck:
                 ardProductId = wc.getProductIdFromLocalSourceFile(product["productId"])
                 generatedProductPath = self.getPathFromProductId(self.pathRoots["outputDir"], ardProductId)
                 
@@ -36,10 +52,10 @@ class GetPreviousProcessedProductsList(luigi.Task):
                     previousProcessedProducts["products"].append(product)
             
         with self.output().open('w') as out:
-            out.write(json.dumps(previousProcessedProducts))
+            out.write(json.dumps(previousProcessedProducts, indent=4))
 
     def output(self):
-        outputFolder = self.pathRoots["processingDir"]
+        outputFolder = os.path.join(self.pathRoots["processingRootDir"], os.path.join(str(self.runDate), "states"))
         return wc.getLocalStateTarget(outputFolder, "PreviousProcessedProductsList.json")
 
     def getPathFromProductId(self, root, productId):

@@ -2,26 +2,24 @@ import luigi
 import logging
 import json
 import os
-import datetime
 import workflow_common.common as wc
 import feedparser
 import requests
 import copy
 import urllib
-from math import ceil
-from datetime import timedelta, datetime
-from dateutil import parser as dateparser
 from os.path import join
 from urllib.parse import urlencode
+from luigi.util import requires
+from process_s1_range_with_retries.SetupDirectories import SetupDirectories
 
 log = logging.getLogger('luigi-interface')
 
 CEDA_OPENSEARCH_URL = 'http://opensearch.ceda.ac.uk/opensearch/json?'
 PAGE_SIZE = 20
+@requires(SetupDirectories)
 class GetS1ProductsByDateAndPolygon(luigi.Task):
     pathRoots = luigi.DictParameter()
-    startDate = luigi.DateParameter()
-    endDate = luigi.DateParameter()
+    runDate = luigi.DateParameter()
     maxScenes = luigi.IntParameter()
 
     def run(self):
@@ -45,7 +43,7 @@ class GetS1ProductsByDateAndPolygon(luigi.Task):
         }
 
         with self.output().open('w') as out:
-            out.write(json.dumps(output))
+            out.write(json.dumps(output, indent=4))
 
     def getBaseQuery(self, polygon, page):
         query = {
@@ -54,8 +52,8 @@ class GetS1ProductsByDateAndPolygon(luigi.Task):
             "mission": "sentinel-1",
             "productType": "GRD",
             "geometry": polygon,
-            "startDate": self.startDate,
-            "endDate": self.endDate
+            "startDate": self.runDate,
+            "endDate": self.runDate
         }
 
         return query
@@ -110,15 +108,19 @@ class GetS1ProductsByDateAndPolygon(luigi.Task):
         for row in result["rows"]:
             product = {
                 "productId": row["misc"]["product_info"]["Name"],
-                "startDate": str(self.startDate),
-                "endDate": str(self.endDate),
+                "initialRunDate": str(self.runDate),
                 "filepath": os.path.join(row["file"]["directory"], row["file"]["data_file"]),
-                "jobId": None
+                "jobId": None,
+                "submitTime": None
             }
             productList.append(product)
 
         return productList
 
     def output(self):
-        outputFolder = self.pathRoots["processingDir"]
+        outputFolder = os.path.join(self.pathRoots["processingRootDir"], os.path.join(str(self.runDate), "states"))
         return wc.getLocalStateTarget(outputFolder, "getS1ProductsByDateAndPolygon.json")
+
+
+
+

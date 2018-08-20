@@ -31,7 +31,7 @@ class PrepareBasket(luigi.Task):
         }
 
         with self.output().open('w') as out:
-            out.write(json.dumps(output))
+            out.write(json.dumps(output, indent=4))
 
     def createBasket(self):
         timestamp = str(datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
@@ -45,5 +45,5 @@ class PrepareBasket(luigi.Task):
         return basketPath
 
     def output(self):
-        outputFolder = self.pathRoots["processingDir"]
+        outputFolder = self.pathRoots["statesDir"]
         return wc.getLocalStateTarget(outputFolder, "prepareBasket.json")

@@ -20,6 +20,7 @@ log = logging.getLogger('luigi-interface')
 @inherits(GetCurrentlyProcessingJobsList)
 class GetProductsToProcessList(luigi.Task):
     pathRoots = luigi.DictParameter()
+    runDate = luigi.DateParameter()
 
     def requires(self):
         t = []
@@ -42,44 +43,47 @@ class GetProductsToProcessList(luigi.Task):
             currentlyProcessingJobs = json.load(currentlyProcessingJobsFile)
 
             productsToProcess = {
-                "products": []
+                "productsToProcess": [],
+                "incompleteProducts": []
             }
 
+            productsList = []
             # Add new products
-            productsToProcess["products"].extend(newProducts["products"])
+            productsList.extend(newProducts["products"])
 
-            # Remove products that have been previously listed
-            productsToProcess["products"] = (seq(productsToProcess["products"])
+            # Remove products that have been previously listed (these won't have job IDs)
+            productsList = (seq(productsList)
                 .filter_not(lambda x: seq(previousProducts["products"])
                     .where(lambda y: y["productId"] == x["productId"])
                     .any())
                 ).to_list()
 
             # Add previously listed products
-            productsToProcess["products"].extend(previousProducts["products"])
+            productsList.extend(previousProducts["products"])
 
             # Remove processed products
-            productsToProcess["products"] = (seq(productsToProcess["products"])
+            productsList = (seq(productsList)
                 .filter_not(lambda x: seq(previousProcessedProducts["products"])
                                     .where(lambda y: y["productId"] == x["productId"])
                                     .any())
                 ).to_list()
 
             # Save products list where processing has not started or is incomplete
-            with open(os.path.join(self.pathRoots["processingDir"], "ProductsList.json"), 'w') as out:
-                out.write(json.dumps(productsToProcess))
+            productsToProcess["incompleteProducts"] = productsList
 
             # Remove currently processing products
-            productsToProcess["products"] = (seq(productsToProcess["products"])
+            productsList = (seq(productsList)
                 .filter_not(lambda x: seq(currentlyProcessingJobs["jobIds"])
                                     .where(lambda y: y == x["jobId"])
                                     .any())
                 ).to_list()
 
+            productsToProcess["productsToProcess"] = productsList
+
         # Save list of products where processing has not started or has failed
         with self.output().open('w') as out:
-            out.write(json.dumps(productsToProcess))
+            out.write(json.dumps(productsToProcess, indent=4))
 
     def output(self):
-        outputFolder = self.pathRoots["processingDir"]
+        outputFolder = os.path.join(self.pathRoots["processingRootDir"], os.path.join(str(self.runDate), "states"))
         return wc.getLocalStateTarget(outputFolder, "ProductsToProcessList.json")

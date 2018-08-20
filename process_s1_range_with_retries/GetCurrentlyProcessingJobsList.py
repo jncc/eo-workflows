@@ -7,11 +7,15 @@ import workflow_common.common as wc
 import subprocess
 import re
 from os.path import join
+from luigi.util import requires
+from process_s1_range_with_retries.SetupDirectories import SetupDirectories
 
 log = logging.getLogger('luigi-interface')
 
+@requires(SetupDirectories)
 class GetCurrentlyProcessingJobsList(luigi.Task):
     pathRoots = luigi.DictParameter()
+    runDate = luigi.DateParameter()
     testProcessing = luigi.BoolParameter(default = False)
     
     def run(self):
@@ -41,10 +45,10 @@ class GetCurrentlyProcessingJobsList(luigi.Task):
             raise RuntimeError(errStr)
 
         with self.output().open('w') as out:
-            out.write(json.dumps(processingProducts))
+            out.write(json.dumps(processingProducts, indent=4))
 
     def output(self):
-        outputFolder = self.pathRoots["processingDir"]
+        outputFolder = os.path.join(self.pathRoots["processingRootDir"], os.path.join(str(self.runDate), "states"))
         return wc.getLocalStateTarget(outputFolder, "CurrentlyProcessingProductsList.json")
 
     def getTestJobList(self):

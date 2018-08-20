@@ -14,14 +14,13 @@ log = logging.getLogger('luigi-interface')
 @requires(GetS1ProductsByDateAndPolygon)
 class GetNewProductsList(luigi.Task):
     pathRoots = luigi.DictParameter()
-    startDate = luigi.DateParameter()
-    endDate = luigi.DateParameter()
+    runDate = luigi.DateParameter()
 
     def run(self):
         newProducts = {
             "queryWindow": {
-                "start": str(self.startDate),
-                "end": str(self.endDate)
+                "start": str(self.runDate),
+                "end": str(self.runDate)
             },
             "products": []
         }
@@ -30,22 +29,21 @@ class GetNewProductsList(luigi.Task):
             rawData = json.load(rawFile)
             entries = seq(rawData["products"])
 
-            newProducts["queryWindow"]["start"] = str(self.startDate)
-            newProducts["queryWindow"]["end"] = str(self.endDate)
+            newProducts["queryWindow"]["start"] = str(self.runDate)
+            newProducts["queryWindow"]["end"] = str(self.runDate)
 
             if not entries.empty():
                 newProducts["products"] = (
                     entries.map(lambda x: {
                         "productId": x["productId"],
-                        "startDate": x["startDate"],
-                        "endDate": x["endDate"],
+                        "initialRunDate": x["initialRunDate"],
                         "filepath": x["filepath"],
                         "jobId": x["jobId"]
                     })).to_list()
 
         with self.output().open('w') as out:
-            out.write(json.dumps(newProducts))
+            out.write(json.dumps(newProducts, indent=4))
 
     def output(self):
-        outputFolder = self.pathRoots["processingDir"]
+        outputFolder = os.path.join(self.pathRoots["processingRootDir"], os.path.join(str(self.runDate), "states"))
         return wc.getLocalStateTarget(outputFolder, "NewProductsList.json")

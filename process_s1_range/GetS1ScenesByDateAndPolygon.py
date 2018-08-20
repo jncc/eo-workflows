@@ -45,7 +45,7 @@ class GetS1ScenesByDateAndPolygon(luigi.Task):
         }
 
         with self.output().open('w') as out:
-            out.write(json.dumps(output))
+            out.write(json.dumps(output, indent=4))
 
     def getBaseQuery(self, polygon, page):
         query = {
@@ -114,5 +114,5 @@ class GetS1ScenesByDateAndPolygon(luigi.Task):
         return filePaths
 
     def output(self):
-        outputFolder = self.pathRoots["processingDir"]
+        outputFolder = self.pathRoots["statesDir"]
         return wc.getLocalStateTarget(outputFolder, "getS1ScenesByDateAndPolygon.json")

@@ -41,8 +41,8 @@ class RunSingularityInLotus(luigi.Task):
                 outputFile["submittedProducts"].append(submittedProduct)
 
         with self.output().open("w") as outFile:
-            outFile.write(json.dumps(outputFile))
+            outFile.write(json.dumps(outputFile, indent=4))
 
     def output(self):
-        outputFolder = self.pathRoots["processingDir"]
+        outputFolder = self.pathRoots["statesDir"]
         return wc.getLocalStateTarget(outputFolder, "lotus_submit_success.json")

@@ -40,7 +40,6 @@ class RunJob(luigi.Task):
 
         outputFile = {
             "productId": filename,
-            "workspaceDir": workspaceRoot,
             "jobId": None,
             "submitTime": None,
         }
@@ -78,11 +77,11 @@ class RunJob(luigi.Task):
             raise RuntimeError(errStr)
 
         with self.output().open('w') as out:
-            out.write(json.dumps(outputFile))
+            out.write(json.dumps(outputFile, indent=4))
         
     def output(self):
-        outputFolder = self.pathRoots["processingDir"]
-        stateFilename = "RunJob_"+os.path.basename(self.inputFile)+".json"
+        outputFolder = self.pathRoots["statesDir"]
+        stateFilename = "RunJob_"+os.path.basename(os.path.splitext(self.inputFile)[0])+".json"
         return wc.getLocalStateTarget(outputFolder, stateFilename)
 
     def createSingularityScript(self, inputFile, processingFileRoot, stateFileRoot, singularityScriptPath):
