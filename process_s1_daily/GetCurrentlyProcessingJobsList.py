@@ -38,7 +38,7 @@ class GetCurrentlyProcessingJobsList(luigi.Task):
             for jobId in re.findall(pattern, outputString):
                 jobIds.append(jobId)
 
-            output["jobIds"] = jobIds
+            output["jobIds"].extend(jobIds)
         except subprocess.CalledProcessError as e:
             errStr = "command '{}' return with error (code {}): {}".format(e.cmd, e.returncode, e.output)
             log.error(errStr)
