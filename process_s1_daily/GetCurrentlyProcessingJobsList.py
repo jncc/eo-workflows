@@ -27,11 +27,11 @@ class GetCurrentlyProcessingJobsList(luigi.Task):
             if self.testProcessing:
                 outputString = self.getTestJobList()
             else:
-                output = subprocess.check_output(
+                processOutput = subprocess.check_output(
                     "bjobs",
                     stderr=subprocess.STDOUT,
                     shell=True)
-                outputString = output.decode("utf-8")
+                outputString = processOutput.decode("utf-8")
   
             pattern = re.compile('[0-9]{7,}') # job ID is 7 digits (or more?)
             jobIds = []
