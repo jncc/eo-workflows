@@ -2,7 +2,7 @@ import luigi
 import logging
 import os
 import glob
-import process_s1_basket.common as wc
+import workflow_common.common as wc
 import json
 from workflow_common.RunJob import RunJob
 from os.path import join
@@ -41,7 +41,7 @@ class RunSingularityInLotus(luigi.Task):
                 outputFile["submittedProducts"].append(submittedProduct)
 
         with self.output().open("w") as outFile:
-            outFile.write(json.dumps(outputFile, indent=4))
+            outFile.write(wc.getFormattedJson(outputFile))
 
     def output(self):
         outputFolder = self.pathRoots["statesDir"]

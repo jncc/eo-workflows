@@ -3,7 +3,7 @@ import logging
 import json
 import os
 import datetime
-import process_s1_basket.common as wc
+import workflow_common.common as wc
 import feedparser
 import requests
 import copy
@@ -45,7 +45,7 @@ class GetS1ScenesByDateAndPolygon(luigi.Task):
         }
 
         with self.output().open('w') as out:
-            out.write(json.dumps(output, indent=4))
+            out.write(wc.getFormattedJson(output))
 
     def getBaseQuery(self, polygon, page):
         query = {

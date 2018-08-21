@@ -77,7 +77,7 @@ class RunJob(luigi.Task):
             raise RuntimeError(errStr)
 
         with self.output().open('w') as out:
-            out.write(json.dumps(outputFile, indent=4))
+            out.write(wc.getFormattedJson(outputFile))
         
     def output(self):
         outputFolder = self.pathRoots["statesDir"]

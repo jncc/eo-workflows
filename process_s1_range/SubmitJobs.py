@@ -58,7 +58,7 @@ class SubmitJobs(luigi.Task):
                 outputFile["products"].append(submittedProduct)
 
         with self.output().open("w") as outFile:
-            outFile.write(json.dumps(outputFile, indent=4))
+            outFile.write(wc.getFormattedJson(outputFile))
 
     def output(self):
         outputFolder = self.pathRoots["statesDir"]

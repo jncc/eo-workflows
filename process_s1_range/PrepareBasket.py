@@ -31,7 +31,7 @@ class PrepareBasket(luigi.Task):
         }
 
         with self.output().open('w') as out:
-            out.write(json.dumps(output, indent=4))
+            out.write(wc.getFormattedJson(output))
 
     def createBasket(self):
         timestamp = str(datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
