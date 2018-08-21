@@ -5,9 +5,11 @@ import json
 import os
 import stat
 import glob
-import process_s1_basket.common as wc
+import workflow_common.common as wc
+import re
 from luigi.util import requires
 from process_s1_range.PrepareBasket import PrepareBasket
+from workflow_common.RunJob import RunJob
 from os.path import join
 
 log = logging.getLogger('luigi-interface')
@@ -15,87 +17,49 @@ log = logging.getLogger('luigi-interface')
 @requires(PrepareBasket)
 class SubmitJobs(luigi.Task):
     pathRoots = luigi.DictParameter()
-    outputFile = luigi.Parameter()
+    outputFilePattern = luigi.Parameter()
     maxScenes = luigi.IntParameter()
     startDate = luigi.DateParameter()
     endDate = luigi.DateParameter()
-
-    def createSingularityScript(self, inputFile, processingFileRoot, stateFileRoot, singularityScriptPath):
-        demDir = self.pathRoots["demDir"]
-        outputDir = self.pathRoots["outputDir"]
-        singularityDir = self.pathRoots["singularityDir"]
-        singularityImgDir = self.pathRoots["singularityImgDir"]
-
-        realRawDir = os.path.dirname(os.path.realpath(inputFile))
-        basketDir = os.path.dirname(inputFile)
-        rawFilename = os.path.basename(inputFile)
-        productId = wc.getProductIdFromLocalSourceFile(inputFile)
-
-        singularityCmd = "{}/singularity exec --bind {}:/data/sentinel/1 --bind {}:/data/states --bind {}:/data/raw --bind {}:/data/dem --bind {}:/data/processed --bind {}:/data/basket {}/s1-ard-processor.simg /app/exec.sh --productId {} --sourceFile '/data/raw/{}' --outputFile '{}'" \
-            .format(singularityDir,
-                processingFileRoot,
-                stateFileRoot,
-                realRawDir,
-                demDir,
-                outputDir,
-                basketDir,
-                singularityImgDir,
-                productId,
-                rawFilename,
-                self.outputFile)
-        
-        with open(singularityScriptPath, 'w') as singularityScript:
-            singularityScript.write(singularityCmd)
-
-        st = os.stat(singularityScriptPath)
-        os.chmod(singularityScriptPath, st.st_mode | 0o110 )
-
-        log.info("Created run_singularity_workflow.sh for " + inputFile + " with command " + singularityCmd)
+    testProcessing = luigi.BoolParameter(default = False)
 
     def run(self):
-        with self.input().open('r') as inputFile:
-            contents = json.load(inputFile)
+        with self.input().open('r') as stateFile:
+            contents = json.load(stateFile)
 
         inputDir = contents["basketPath"]
-        processingDir = self.pathRoots["processingDir"]
 
+        tasks = []
         for inputFile in glob.glob(os.path.join(inputDir, "*.zip")):
-            log.info("Found " + inputFile + ", setting up directories")
+            task = RunJob(
+                inputFile = inputFile,
+                outputFilePattern = self.outputFilePattern,
+                pathRoots = self.pathRoots,
+                removeSourceFile = True,
+                testProcessing = self.testProcessing
+            )
 
-            filename = os.path.basename(os.path.splitext(inputFile)[0])
+            tasks.append(task)
 
-            workspaceRoot = os.path.join(processingDir, filename)
-            
-            processingFileRoot = os.path.join(workspaceRoot, "processing")
-            if not os.path.exists(processingFileRoot):
-                os.makedirs(processingFileRoot)
+        yield tasks
 
-            stateFileRoot = os.path.join(workspaceRoot, "states")
-            if not os.path.exists(stateFileRoot):
-                os.makedirs(stateFileRoot)
+        outputFile = {
+            "queryWindow": {
+                "start": str(self.startDate),
+                "end": str(self.endDate)
+            },
+            "maxScenes": self.maxScenes,
+            "products": []
+        }
 
-            singularityScriptPath = os.path.join(workspaceRoot, "run_singularity_workflow.sh")
-            if not os.path.isfile(singularityScriptPath):
-                self.createSingularityScript(inputFile, processingFileRoot, stateFileRoot, singularityScriptPath)
+        for task in tasks:
+            with task.output().open('r') as taskOutput:
+                submittedProduct = json.load(taskOutput)
+                outputFile["products"].append(submittedProduct)
 
-            lotusCmd = "bsub -q short-serial -R 'rusage[mem=18000]' -M 18000 -W 10:00 -o {}/%J.out -e {}/%J.err {}" \
-                .format(
-                    workspaceRoot,
-                    workspaceRoot,
-                    singularityScriptPath
-                )
-
-            try:
-                subprocess.check_output(
-                    lotusCmd,
-                    stderr=subprocess.STDOUT,
-                    shell=True)
-                log.info("Successfully submitted lotus job for " + inputFile + " using command: " + lotusCmd)
-            except subprocess.CalledProcessError as e:
-                errStr = "command '{}' return with error (code {}): {}".format(e.cmd, e.returncode, e.output)
-                log.error(errStr)
-                raise RuntimeError(errStr)
+        with self.output().open("w") as outFile:
+            outFile.write(wc.getFormattedJson(outputFile))
 
     def output(self):
-        outputFolder = self.pathRoots["processingDir"]
-        return wc.getLocalStateTarget(outputFolder, "lotus_submit_success.json")
+        outputFolder = self.pathRoots["statesDir"]
+        return wc.getLocalStateTarget(outputFolder, "SubmittedJobs.json")

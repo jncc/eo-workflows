@@ -3,7 +3,7 @@ import logging
 import json
 import os
 import datetime
-import process_s1_basket.common as wc
+import workflow_common.common as wc
 from luigi.util import requires
 from os.path import join
 from process_s1_range.GetS1ScenesByDateAndPolygon import GetS1ScenesByDateAndPolygon
@@ -31,11 +31,11 @@ class PrepareBasket(luigi.Task):
         }
 
         with self.output().open('w') as out:
-            out.write(json.dumps(output))
+            out.write(wc.getFormattedJson(output))
 
     def createBasket(self):
         timestamp = str(datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
-        basketName = str(self.startDate) + "-" + str(self.endDate) + "_" + timestamp
+        basketName = str(self.startDate).replace('-','') + "-" + str(self.endDate).replace('-','') + "_" + timestamp
         basketPath = os.path.join(self.pathRoots["basketRoot"], basketName)
 
         if not os.path.exists(basketPath):
@@ -45,5 +45,5 @@ class PrepareBasket(luigi.Task):
         return basketPath
 
     def output(self):
-        outputFolder = self.pathRoots["processingDir"]
+        outputFolder = self.pathRoots["statesDir"]
         return wc.getLocalStateTarget(outputFolder, "prepareBasket.json")
