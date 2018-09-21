@@ -17,7 +17,7 @@ log = logging.getLogger('luigi-interface')
 @requires(PrepareBasket)
 class SubmitJobs(luigi.Task):
     pathRoots = luigi.DictParameter()
-    outputFilePattern = luigi.Parameter()
+    reprojectionFilePattern = luigi.Parameter()
     maxScenes = luigi.IntParameter()
     startDate = luigi.DateParameter()
     endDate = luigi.DateParameter()
@@ -33,7 +33,7 @@ class SubmitJobs(luigi.Task):
         for inputFile in glob.glob(os.path.join(inputDir, "*.zip")):
             task = RunJob(
                 inputFile = inputFile,
-                outputFilePattern = self.outputFilePattern,
+                reprojectionFilePattern = self.reprojectionFilePattern,
                 pathRoots = self.pathRoots,
                 removeSourceFile = True,
                 testProcessing = self.testProcessing
@@ -61,5 +61,5 @@ class SubmitJobs(luigi.Task):
             outFile.write(wc.getFormattedJson(outputFile))
 
     def output(self):
-        outputFolder = self.pathRoots["statesDir"]
+        outputFolder = self.pathRoots["stateDir"]
         return wc.getLocalStateTarget(outputFolder, "SubmittedJobs.json")

@@ -13,7 +13,7 @@ from process_s1_daily.SetupDirectories import SetupDirectories
 log = logging.getLogger('luigi-interface')
 
 @requires(SetupDirectories)
-class GetCurrentlyProcessingJobsList(luigi.Task):
+class GetActiveJobsList(luigi.Task):
     pathRoots = luigi.DictParameter()
     runDate = luigi.DateParameter()
     testProcessing = luigi.BoolParameter(default = False)
@@ -48,7 +48,7 @@ class GetCurrentlyProcessingJobsList(luigi.Task):
             out.write(wc.getFormattedJson(output))
 
     def output(self):
-        return wc.getLocalDatedStateTarget(self.pathRoots["processingRootDir"], self.runDate, "CurrentlyProcessingProductsList.json")
+        return wc.getLocalDatedStateTarget(self.pathRoots["processingRootDir"], self.runDate, "ActiveJobsList.json")
 
     def getTestJobList(self):
         return "JOBID     USER    STAT  QUEUE      FROM_HOST   EXEC_HOST   JOB_NAME   SUBMIT_TIME\

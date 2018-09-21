@@ -9,29 +9,29 @@ from os.path import join
 
 log = logging.getLogger('luigi-interface')
 
-class RunSingularityInLotus(luigi.Task):
+class ProcessBasket(luigi.Task):
     pathRoots = luigi.DictParameter()
-    outputFilePattern = luigi.Parameter()
+    reprojectionFilePattern = luigi.Parameter()
     testProcessing = luigi.BoolParameter(default = False)
 
     def run(self):
-        inputDir = self.pathRoots["inputDir"]
+        basketDir = self.pathRoots["basketDir"]
 
         tasks = []
-        for inputFile in glob.glob(os.path.join(inputDir, "*.zip")):
+        for inputFile in glob.glob(os.path.join(basketDir, "*.zip")):
             task = RunJob(
                 inputFile = inputFile,
-                outputFilePattern = self.outputFilePattern,
+                reprojectionFilePattern = self.reprojectionFilePattern,
                 pathRoots = self.pathRoots,
                 removeSourceFile = True,
                 testProcessing = self.testProcessing
             )
 
             tasks.append(task)
-
         yield tasks
 
         outputFile = {
+            "basket": basketDir,
             "submittedProducts": []
         }
 
@@ -44,5 +44,5 @@ class RunSingularityInLotus(luigi.Task):
             outFile.write(wc.getFormattedJson(outputFile))
 
     def output(self):
-        outputFolder = self.pathRoots["statesDir"]
-        return wc.getLocalStateTarget(outputFolder, "lotus_submit_success.json")
+        outputFolder = self.pathRoots["stateDir"]
+        return wc.getLocalStateTarget(outputFolder, "ProcessBasket.json")

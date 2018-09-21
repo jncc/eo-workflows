@@ -8,8 +8,8 @@ def getLocalTarget(key):
     return LocalTarget(key)
 
 def getLocalDatedStateTarget(rootPath, date, fileName):
-    statesPath = os.path.join(rootPath, os.path.join(str(date), "states"))
-    filePath = os.path.join(statesPath, fileName)
+    statePath = os.path.join(rootPath, os.path.join(str(date), "state"))
+    filePath = os.path.join(statePath, fileName)
 
     return LocalTarget(filePath)
 

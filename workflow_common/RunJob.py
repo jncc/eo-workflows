@@ -15,36 +15,35 @@ log = logging.getLogger('luigi-interface')
 class RunJob(luigi.Task):
     inputFile = luigi.Parameter()
     pathRoots = luigi.DictParameter()
-    outputFilePattern = luigi.Parameter()
+    reprojectionFilePattern = luigi.Parameter()
     removeSourceFile = luigi.BoolParameter()
     testProcessing = luigi.BoolParameter(default = False)
 
     def run(self):
-        log.info("Found " + self.inputFile + ", setting up directories")
+        log.info("Setting up directories for {}".format(self.inputFile))
 
-        filename = os.path.basename(os.path.splitext(self.inputFile)[0])
-
-        workspaceRoot = os.path.join(self.pathRoots["processingDir"], filename)
+        productName = os.path.basename(os.path.splitext(self.inputFile)[0])
+        workspaceRoot = os.path.join(self.pathRoots["processingDir"], productName)
         
-        processingFileRoot = os.path.join(workspaceRoot, "processing")
-        if not os.path.exists(processingFileRoot):
-            os.makedirs(processingFileRoot)
+        workingFileRoot = os.path.join(workspaceRoot, "working")
+        if not os.path.exists(workingFileRoot):
+            os.makedirs(workingFileRoot)
 
-        stateFileRoot = os.path.join(workspaceRoot, "states")
+        stateFileRoot = os.path.join(workspaceRoot, "state")
         if not os.path.exists(stateFileRoot):
             os.makedirs(stateFileRoot)
 
         singularityScriptPath = os.path.join(workspaceRoot, "run_singularity_workflow.sh")
         if not os.path.isfile(singularityScriptPath):
-            self.createSingularityScript(self.inputFile, processingFileRoot, stateFileRoot, singularityScriptPath)
+            self.createSingularityScript(self.inputFile, workingFileRoot, stateFileRoot, singularityScriptPath)
 
         outputFile = {
-            "productId": filename,
+            "productId": productName,
             "jobId": None,
             "submitTime": None,
         }
 
-        lotusCmd = "bsub -q short-serial -R 'rusage[mem=18000]' -M 18000 -W 10:00 -o {}/%J.out -e {}/%J.err {}" \
+        lotusCmd = "bsub -q short-serial -R 'rusage[mem=18000]' -M 18000 -W 12:00 -o {}/%J.out -e {}/%J.err {}" \
             .format(
                 workspaceRoot,
                 workspaceRoot,
@@ -52,6 +51,7 @@ class RunJob(luigi.Task):
             )
 
         try:
+            outputString = ""
             if self.testProcessing:
                 randomJobId = random.randint(1000000,9999999)
                 outputString = "JOBID     USER    STAT  QUEUE      FROM_HOST   EXEC_HOST   JOB_NAME   SUBMIT_TIME"\
@@ -67,7 +67,7 @@ class RunJob(luigi.Task):
             match = re.search(regex, outputString)
             jobId = match.group(0)
 
-            log.info("Successfully submitted lotus job <%s> for %s using command: %s", jobId, filename, lotusCmd)
+            log.info("Successfully submitted lotus job <%s> for %s using command: %s", jobId, productName, lotusCmd)
 
             outputFile["jobId"] = jobId
             outputFile["submitTime"] = str(datetime.datetime.now())
@@ -80,32 +80,34 @@ class RunJob(luigi.Task):
             out.write(wc.getFormattedJson(outputFile))
         
     def output(self):
-        outputFolder = self.pathRoots["statesDir"]
+        outputFolder = self.pathRoots["stateDir"]
         stateFilename = "RunJob_"+os.path.basename(os.path.splitext(self.inputFile)[0])+".json"
         return wc.getLocalStateTarget(outputFolder, stateFilename)
 
-    def createSingularityScript(self, inputFile, processingFileRoot, stateFileRoot, singularityScriptPath):
-        demDir = self.pathRoots["demDir"]
+    def createSingularityScript(self, inputFile, workingFileRoot, stateFileRoot, singularityScriptPath):
+        staticDir = self.pathRoots["staticDir"]
         outputDir = self.pathRoots["outputDir"]
         singularityDir = self.pathRoots["singularityDir"]
         singularityImgDir = self.pathRoots["singularityImgDir"]
 
         realRawDir = os.path.dirname(os.path.realpath(inputFile))
+        basketDir = os.path.dirname(inputFile)
         rawFilename = os.path.basename(inputFile)
         productId = wc.getProductIdFromLocalSourceFile(inputFile)
         removeSourceFileFlag = "--removeSourceFile" if self.removeSourceFile else ""
 
-        singularityCmd = "{}/singularity exec --bind {}:/data/sentinel/1 --bind {}:/data/states --bind {}:/data/raw --bind {}:/data/dem --bind {}:/data/processed {}/s1-ard-processor.simg /app/exec.sh --productId {} --sourceFile '/data/raw/{}' --outputFile '{}' {}" \
+        singularityCmd = "{}/singularity exec --bind {}:/working --bind {}:/state --bind {}:/input/raw --bind {}:/static --bind {}:/output --bind {}:/input/basket {}/s1-ard-processor.simg /app/exec.sh --productId {} --sourceFile '/input/raw/{}' --reprojectionFilePattern '{}' {}" \
             .format(singularityDir,
-                processingFileRoot,
+                workingFileRoot,
                 stateFileRoot,
                 realRawDir,
-                demDir,
+                staticDir,
                 outputDir,
+                basketDir,
                 singularityImgDir,
                 productId,
                 rawFilename,
-                self.outputFilePattern,
+                self.reprojectionFilePattern,
                 removeSourceFileFlag)
         
         with open(singularityScriptPath, 'w') as singularityScript:

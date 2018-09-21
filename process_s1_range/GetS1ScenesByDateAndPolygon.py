@@ -114,5 +114,5 @@ class GetS1ScenesByDateAndPolygon(luigi.Task):
         return filePaths
 
     def output(self):
-        outputFolder = self.pathRoots["statesDir"]
+        outputFolder = self.pathRoots["stateDir"]
         return wc.getLocalStateTarget(outputFolder, "getS1ScenesByDateAndPolygon.json")

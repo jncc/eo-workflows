@@ -12,18 +12,18 @@ class SetupDirectories(luigi.Task):
     runDate = luigi.DateParameter()
 
     def run(self):
-        statesDir = os.path.join(self.pathRoots["processingRootDir"], os.path.join(str(self.runDate), "states"))
-        processingDir = os.path.join(self.pathRoots["processingRootDir"], os.path.join(str(self.runDate), "processing"))
+        stateDir = os.path.join(self.pathRoots["processingRootDir"], os.path.join(str(self.runDate), "state"))
+        productsDir = os.path.join(self.pathRoots["processingRootDir"], os.path.join(str(self.runDate), "products"))
 
-        if not os.path.exists(statesDir):
-            os.makedirs(statesDir)
+        if not os.path.exists(stateDir):
+            os.makedirs(stateDir)
         
-        if not os.path.exists(processingDir):
-            os.makedirs(processingDir)
+        if not os.path.exists(productsDir):
+            os.makedirs(productsDir)
 
         output = {
-            "statesDir": statesDir,
-            "processingDir": processingDir
+            "stateDir": stateDir,
+            "productsDir": productsDir
         }
 
         with self.output().open('w') as out:
