@@ -19,7 +19,7 @@ class SubmitJobs(luigi.Task):
     pathRoots = luigi.DictParameter()
     maxScenes = luigi.IntParameter()
     runDate = luigi.DateParameter()
-    reprojectionFilePattern = luigi.Parameter()
+    demFilename = luigi.Parameter()
     testProcessing = luigi.BoolParameter(default = False)
 
     def requires(self):
@@ -53,7 +53,7 @@ class SubmitJobs(luigi.Task):
 
             task = RunJob(
                 inputFile = product["filepath"],
-                reprojectionFilePattern = self.reprojectionFilePattern,
+                demFilename = self.demFilename,
                 pathRoots = jobPathRoots,
                 removeSourceFile = False,
                 testProcessing = self.testProcessing

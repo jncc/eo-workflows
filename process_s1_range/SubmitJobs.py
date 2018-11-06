@@ -17,7 +17,7 @@ log = logging.getLogger('luigi-interface')
 @requires(PrepareBasket)
 class SubmitJobs(luigi.Task):
     pathRoots = luigi.DictParameter()
-    reprojectionFilePattern = luigi.Parameter()
+    demFilename = luigi.Parameter()
     maxScenes = luigi.IntParameter()
     startDate = luigi.DateParameter()
     endDate = luigi.DateParameter()
@@ -33,7 +33,7 @@ class SubmitJobs(luigi.Task):
         for inputFile in glob.glob(os.path.join(inputDir, "*.zip")):
             task = RunJob(
                 inputFile = inputFile,
-                reprojectionFilePattern = self.reprojectionFilePattern,
+                demFilename = self.demFilename,
                 pathRoots = self.pathRoots,
                 removeSourceFile = True,
                 testProcessing = self.testProcessing

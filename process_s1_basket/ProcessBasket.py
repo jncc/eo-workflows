@@ -11,7 +11,7 @@ log = logging.getLogger('luigi-interface')
 
 class ProcessBasket(luigi.Task):
     pathRoots = luigi.DictParameter()
-    reprojectionFilePattern = luigi.Parameter()
+    demFilename = luigi.Parameter()
     testProcessing = luigi.BoolParameter(default = False)
 
     def run(self):
@@ -21,7 +21,7 @@ class ProcessBasket(luigi.Task):
         for inputFile in glob.glob(os.path.join(basketDir, "*.zip")):
             task = RunJob(
                 inputFile = inputFile,
-                reprojectionFilePattern = self.reprojectionFilePattern,
+                demFilename = self.demFilename,
                 pathRoots = self.pathRoots,
                 removeSourceFile = True,
                 testProcessing = self.testProcessing

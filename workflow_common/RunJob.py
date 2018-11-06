@@ -14,8 +14,8 @@ log = logging.getLogger('luigi-interface')
 
 class RunJob(luigi.Task):
     inputFile = luigi.Parameter()
+    demFilename = luigi.Parameter()
     pathRoots = luigi.DictParameter()
-    reprojectionFilePattern = luigi.Parameter()
     removeSourceFile = luigi.BoolParameter()
     testProcessing = luigi.BoolParameter(default = False)
 
@@ -93,10 +93,10 @@ class RunJob(luigi.Task):
         realRawDir = os.path.dirname(os.path.realpath(inputFile))
         basketDir = os.path.dirname(inputFile)
         rawFilename = os.path.basename(inputFile)
-        productId = wc.getProductIdFromLocalSourceFile(inputFile)
-        removeSourceFileFlag = "--removeSourceFile" if self.removeSourceFile else ""
+        removeSourceFileFlag = "--removeInputFile" if self.removeSourceFile else ""
 
-        singularityCmd = "{}/singularity exec --bind {}:/working --bind {}:/state --bind {}:/input/raw --bind {}:/static --bind {}:/output --bind {}:/input/basket {}/s1-ard-processor.simg /app/exec.sh --productId {} --sourceFile '/input/raw/{}' --reprojectionFilePattern '{}' {}" \
+        singularityCmd = "{}/singularity exec --bind {}:/working --bind {}:/state --bind {}:/input --bind {}:/static --bind {}:/output --bind {}:/input/basket "\
+            "{}/s1-ard-processor.simg /app/exec.sh VerifyWorkflowOutput --inputFileName={} --demFile={} --memoryLimit=16 {} --noStateCopy" \
             .format(singularityDir,
                 workingFileRoot,
                 stateFileRoot,
@@ -105,9 +105,8 @@ class RunJob(luigi.Task):
                 outputDir,
                 basketDir,
                 singularityImgDir,
-                productId,
                 rawFilename,
-                self.reprojectionFilePattern,
+                self.demFilename,
                 removeSourceFileFlag)
         
         with open(singularityScriptPath, 'w') as singularityScript:
