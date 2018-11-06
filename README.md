@@ -8,7 +8,7 @@ The EO workflow tasks for running on JASMIN. These tasks will prepare and run th
 #### Process S1 Basket
 This workflow takes all raw products in a given directory and processes them to ARD in a Singularity container on LOTUS.
 ```
-PYTHONPATH='.' luigi --module process_s1_basket RunSingularityInLotus
+PYTHONPATH='.' luigi --module process_s1_basket ProcessBasket
 ```
 
 #### Process S1 Range
