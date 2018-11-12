@@ -45,5 +45,5 @@ class PrepareBasket(luigi.Task):
         return basketPath
 
     def output(self):
-        outputFolder = self.pathRoots["statesDir"]
+        outputFolder = self.pathRoots["stateDir"]
         return wc.getLocalStateTarget(outputFolder, "prepareBasket.json")

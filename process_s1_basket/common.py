@@ -17,10 +17,6 @@ def getLocalStateTarget(targetPath, fileName):
     targetKey = join(targetPath, fileName)
     return LocalTarget(targetKey)
 
-def getProductIdFromLocalSourceFile(sourceFile):
-    productFilename = basename(sourceFile)
-    return '%s_%s_%s_%s' % (productFilename[0:3], productFilename[17:25], productFilename[26:32], productFilename[42:48])
-
 def getProductIdFromSourceFile(sourceFile):
     productFilename = basename(getPathFromS3Path(sourceFile))
     return '%s_%s_%s_%s' % (productFilename[0:3], productFilename[17:25], productFilename[26:32], productFilename[42:48])
