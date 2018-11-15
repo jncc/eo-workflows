@@ -63,7 +63,7 @@ class RunJob(luigi.Task):
                     shell=True)
                 outputString = output.decode("utf-8")
 
-            regex = '[0-9]{7,}' # job ID is 7 digits
+            regex = '[0-9]{5,}' # job ID is at least 5 digits
             match = re.search(regex, outputString)
             jobId = match.group(0)
 
