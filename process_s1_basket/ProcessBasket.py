@@ -10,19 +10,21 @@ from os.path import join
 log = logging.getLogger('luigi-interface')
 
 class ProcessBasket(luigi.Task):
-    pathRoots = luigi.DictParameter()
+    paths = luigi.DictParameter()
+    spatialConfig = luigi.DictParameter()
     demFilename = luigi.Parameter()
     testProcessing = luigi.BoolParameter(default = False)
 
     def run(self):
-        basketDir = self.pathRoots["basketDir"]
+        basketDir = self.paths["basketDir"]
 
         tasks = []
         for inputFile in glob.glob(os.path.join(basketDir, "*.zip")):
             task = RunJob(
-                inputFile = inputFile,
+                inputPath = inputFile,
                 demFilename = self.demFilename,
-                pathRoots = self.pathRoots,
+                paths = self.paths,
+                spatialConfig = self.spatialConfig,
                 removeSourceFile = True,
                 testProcessing = self.testProcessing
             )
@@ -44,5 +46,5 @@ class ProcessBasket(luigi.Task):
             outFile.write(wc.getFormattedJson(outputFile))
 
     def output(self):
-        outputFolder = self.pathRoots["stateDir"]
+        outputFolder = self.paths["stateDir"]
         return wc.getLocalStateTarget(outputFolder, "ProcessBasket.json")

@@ -7,23 +7,26 @@ import stat
 import random
 import re
 import datetime
+import pathlib
 import workflow_common.common as wc
 from os.path import join
+from pathlib import Path
 
 log = logging.getLogger('luigi-interface')
 
 class RunJob(luigi.Task):
-    inputFile = luigi.Parameter()
+    inputPath = luigi.Parameter()
     demFilename = luigi.Parameter()
-    pathRoots = luigi.DictParameter()
+    paths = luigi.DictParameter()
+    spatialConfig = luigi.DictParameter()
     removeSourceFile = luigi.BoolParameter()
     testProcessing = luigi.BoolParameter(default = False)
 
     def run(self):
-        log.info("Setting up directories for {}".format(self.inputFile))
+        log.info("Setting up directories for {}".format(self.inputPath))
 
-        productName = os.path.basename(os.path.splitext(self.inputFile)[0])
-        workspaceRoot = os.path.join(self.pathRoots["processingDir"], productName)
+        productName = wc.getProductNameFromPath(self.inputPath)
+        workspaceRoot = os.path.join(self.paths["processingDir"], productName)
         
         workingFileRoot = os.path.join(workspaceRoot, "working")
         if not os.path.exists(workingFileRoot):
@@ -35,7 +38,7 @@ class RunJob(luigi.Task):
 
         singularityScriptPath = os.path.join(workspaceRoot, "run_singularity_workflow.sh")
         if not os.path.isfile(singularityScriptPath):
-            self.createSingularityScript(self.inputFile, workingFileRoot, stateFileRoot, singularityScriptPath)
+            self.createSingularityScript(self.inputPath, workingFileRoot, stateFileRoot, singularityScriptPath)
 
         outputFile = {
             "productId": productName,
@@ -80,34 +83,44 @@ class RunJob(luigi.Task):
             out.write(wc.getFormattedJson(outputFile))
         
     def output(self):
-        outputFolder = self.pathRoots["stateDir"]
-        stateFilename = "RunJob_"+os.path.basename(os.path.splitext(self.inputFile)[0])+".json"
+        outputFolder = self.paths["stateDir"]
+        stateFilename = "RunJob_"+wc.getProductNameFromPath(self.inputPath)+".json"
         return wc.getLocalStateTarget(outputFolder, stateFilename)
 
-    def createSingularityScript(self, inputFile, workingFileRoot, stateFileRoot, singularityScriptPath):
-        staticDir = self.pathRoots["staticDir"]
-        outputDir = self.pathRoots["outputDir"]
-        singularityDir = self.pathRoots["singularityDir"]
-        singularityImgDir = self.pathRoots["singularityImgDir"]
+    def createSingularityScript(self, inputPath, workingFileRoot, stateFileRoot, singularityScriptPath):
+        staticDir = self.paths["staticDir"]
+        outputDir = self.paths["outputDir"]
+        singularityDir = self.paths["singularityDir"]
+        singularityImgPath = self.paths["singularityImgPath"]
 
-        realRawDir = os.path.dirname(os.path.realpath(inputFile))
-        basketDir = os.path.dirname(inputFile)
-        rawFilename = os.path.basename(inputFile)
+        path = Path(inputPath)
+        inputDir = path.parent
+        basketDir = inputDir #todo: we don't need a separate binding for basket anymore
+        productName = wc.getProductNameFromPath(inputPath)
         removeSourceFileFlag = "--removeInputFile" if self.removeSourceFile else ""
 
         singularityCmd = "{}/singularity exec --bind {}:/working --bind {}:/state --bind {}:/input --bind {}:/static --bind {}:/output --bind {}:/input/basket "\
-            "{}/s1-ard-processor.simg /app/exec.sh VerifyWorkflowOutput --inputFileName={} --demFile={} --memoryLimit=16 {} --noStateCopy" \
+            "{} /app/exec.sh VerifyWorkflowOutput --productName={} --demFileName={} --memoryLimit=16 {} --noStateCopy " \
+            "--snapConfigUtmProj='{}' --snapConfigCentralMeridian={} --snapConfigFalseNorthing={} --snapRunArguments='{}' --sourceSrs='{}' --targetSrs='{}' --finalSrsName={} --metadataProjection='{}'" \
             .format(singularityDir,
                 workingFileRoot,
                 stateFileRoot,
-                realRawDir,
+                inputDir,
                 staticDir,
                 outputDir,
                 basketDir,
-                singularityImgDir,
-                rawFilename,
+                singularityImgPath,
+                productName,
                 self.demFilename,
-                removeSourceFileFlag)
+                removeSourceFileFlag,
+                self.spatialConfig["snapConfigUtmProj"],
+                self.spatialConfig["snapConfigCentralMeridian"],
+                self.spatialConfig["snapConfigFalseNorthing"],
+                self.spatialConfig["snapRunArguments"],
+                self.spatialConfig["sourceSrs"],
+                self.spatialConfig["targetSrs"],
+                self.spatialConfig["finalSrsName"],
+                self.spatialConfig["metadataProjection"])
         
         with open(singularityScriptPath, 'w') as singularityScript:
             singularityScript.write(singularityCmd)
@@ -115,4 +128,4 @@ class RunJob(luigi.Task):
         st = os.stat(singularityScriptPath)
         os.chmod(singularityScriptPath, st.st_mode | 0o110 )
 
-        log.info("Created run_singularity_workflow.sh for " + self.inputFile + " with command " + singularityCmd)
+        log.info("Created run_singularity_workflow.sh for " + inputPath + " with command " + singularityCmd)

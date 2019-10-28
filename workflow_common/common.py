@@ -23,3 +23,9 @@ def getProductIdFromLocalSourceFile(sourceFile):
 
 def getFormattedJson(jsonOutput):
     return json.dumps(jsonOutput, indent=4)
+
+def getProductNameFromPath(inputPath):
+    if inputPath.endswith(".zip"):
+        return os.path.basename(os.path.splitext(inputPath)[0])
+    else:
+        return os.path.basename(inputPath)
