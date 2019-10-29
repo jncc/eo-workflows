@@ -95,11 +95,10 @@ class RunJob(luigi.Task):
 
         path = Path(inputPath)
         inputDir = path.parent
-        basketDir = inputDir #todo: we don't need a separate binding for basket anymore
         productName = wc.getProductNameFromPath(inputPath)
         removeSourceFileFlag = "--removeInputFile" if self.removeSourceFile else ""
 
-        singularityCmd = "{}/singularity exec --bind {}:/working --bind {}:/state --bind {}:/input --bind {}:/static --bind {}:/output --bind {}:/input/basket "\
+        singularityCmd = "{}/singularity exec --bind {}:/working --bind {}:/state --bind {}:/input --bind {}:/static --bind {}:/output "\
             "{} /app/exec.sh VerifyWorkflowOutput --productName={} --demFileName={} --memoryLimit=16 {} --noStateCopy " \
             "--snapConfigUtmProj='{}' --snapConfigCentralMeridian={} --snapConfigFalseNorthing={} --snapRunArguments='{}' --sourceSrs='{}' --targetSrs='{}' --finalSrsName={} --metadataProjection='{}'" \
             .format(singularityDir,
@@ -108,7 +107,6 @@ class RunJob(luigi.Task):
                 inputDir,
                 staticDir,
                 outputDir,
-                basketDir,
                 singularityImgPath,
                 productName,
                 self.demFilename,

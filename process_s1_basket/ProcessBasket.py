@@ -19,7 +19,7 @@ class ProcessBasket(luigi.Task):
         basketDir = self.paths["basketDir"]
 
         tasks = []
-        for inputFile in glob.glob(os.path.join(basketDir, "*.zip")):
+        for inputFile in glob.glob(os.path.join(basketDir, "S1*")):
             task = RunJob(
                 inputPath = inputFile,
                 demFilename = self.demFilename,
