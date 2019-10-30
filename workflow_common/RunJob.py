@@ -16,7 +16,6 @@ log = logging.getLogger('luigi-interface')
 
 class RunJob(luigi.Task):
     inputPath = luigi.Parameter()
-    demFilename = luigi.Parameter()
     paths = luigi.DictParameter()
     spatialConfig = luigi.DictParameter()
     removeSourceFile = luigi.BoolParameter()
@@ -99,8 +98,9 @@ class RunJob(luigi.Task):
         removeSourceFileFlag = "--removeInputFile" if self.removeSourceFile else ""
 
         singularityCmd = "{}/singularity exec --bind {}:/working --bind {}:/state --bind {}:/input --bind {}:/static --bind {}:/output "\
-            "{} /app/exec.sh VerifyWorkflowOutput --productName={} --demFileName={} --memoryLimit=16 {} --noStateCopy " \
-            "--snapConfigUtmProj='{}' --snapConfigCentralMeridian={} --snapConfigFalseNorthing={} --snapRunArguments='{}' --sourceSrs='{}' --targetSrs='{}' --finalSrsName={} --metadataProjection='{}'" \
+            "{} /app/exec.sh VerifyWorkflowOutput --productName={} --memoryLimit=16 --noStateCopy --spatialConfig='{{\"snapConfigUtmProj\": \"{}\", "\
+            "\"snapConfigCentralMeridian\": \"{}\", \"snapConfigFalseNorthing\": \"{}\", \"snapRunArguments\": \"{}\", \"sourceSrs\": \"{}\", \"targetSrs\": \"{}\", " \
+            "\"filenameSrs\": \"{}\", \"demFilename\": \"{}\", \"demTitle\":\"{}\", \"metadataProjection\": \"{}\", \"metadataPlaceName\":\"{}\", \"metadataParentPlaceName\":\"{}\"}}' {}" \
             .format(singularityDir,
                 workingFileRoot,
                 stateFileRoot,
@@ -109,16 +109,19 @@ class RunJob(luigi.Task):
                 outputDir,
                 singularityImgPath,
                 productName,
-                self.demFilename,
-                removeSourceFileFlag,
                 self.spatialConfig["snapConfigUtmProj"],
                 self.spatialConfig["snapConfigCentralMeridian"],
                 self.spatialConfig["snapConfigFalseNorthing"],
                 self.spatialConfig["snapRunArguments"],
                 self.spatialConfig["sourceSrs"],
                 self.spatialConfig["targetSrs"],
-                self.spatialConfig["finalSrsName"],
-                self.spatialConfig["metadataProjection"])
+                self.spatialConfig["filenameSrs"],
+                self.spatialConfig["demFilename"],
+                self.spatialConfig["demTitle"],
+                self.spatialConfig["metadataProjection"],
+                self.spatialConfig["metadataPlaceName"],
+                self.spatialConfig["metadataParentPlaceName"],
+                removeSourceFileFlag)
         
         with open(singularityScriptPath, 'w') as singularityScript:
             singularityScript.write(singularityCmd)

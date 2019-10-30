@@ -12,7 +12,6 @@ log = logging.getLogger('luigi-interface')
 class ProcessBasket(luigi.Task):
     paths = luigi.DictParameter()
     spatialConfig = luigi.DictParameter()
-    demFilename = luigi.Parameter()
     testProcessing = luigi.BoolParameter(default = False)
 
     def run(self):
@@ -22,7 +21,6 @@ class ProcessBasket(luigi.Task):
         for inputFile in glob.glob(os.path.join(basketDir, "S1*")):
             task = RunJob(
                 inputPath = inputFile,
-                demFilename = self.demFilename,
                 paths = self.paths,
                 spatialConfig = self.spatialConfig,
                 removeSourceFile = True,
