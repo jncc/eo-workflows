@@ -98,9 +98,10 @@ class RunJob(luigi.Task):
         removeSourceFileFlag = "--removeInputFile" if self.removeSourceFile else ""
 
         singularityCmd = "{}/singularity exec --bind {}:/working --bind {}:/state --bind {}:/input --bind {}:/static --bind {}:/output "\
-            "{} /app/exec.sh VerifyWorkflowOutput --productName={} --memoryLimit=16 --noStateCopy --spatialConfig='{{\"snapConfigUtmProj\": \"{}\", "\
-            "\"snapConfigCentralMeridian\": \"{}\", \"snapConfigFalseNorthing\": \"{}\", \"snapRunArguments\": \"{}\", \"sourceSrs\": \"{}\", \"targetSrs\": \"{}\", " \
-            "\"filenameSrs\": \"{}\", \"demFilename\": \"{}\", \"demTitle\":\"{}\", \"metadataProjection\": \"{}\", \"metadataPlaceName\":\"{}\", \"metadataParentPlaceName\":\"{}\"}}' {}" \
+            "{} /app/exec.sh VerifyWorkflowOutput --productName={} --memoryLimit=16 --noStateCopy --spatialConfig='{{" \
+            "\"snapConfigUtmProj\": \"{}\", \"snapConfigCentralMeridian\": \"{}\", \"snapConfigFalseNorthing\": \"{}\", \"snapRunArguments\": \"{}\", " \
+            "\"sourceSrs\": \"{}\", \"targetSrs\": \"{}\", \"filenameDemData\": \"{}\", \"filenameSrs\": \"{}\", \"demFilename\": \"{}\", \"demTitle\":\"{}\", " \
+            "\"metadataProjection\": \"{}\", \"metadataPlaceName\":\"{}\", \"metadataParentPlaceName\":\"{}\"}}' {}" \
             .format(singularityDir,
                 workingFileRoot,
                 stateFileRoot,
@@ -115,6 +116,7 @@ class RunJob(luigi.Task):
                 self.spatialConfig["snapRunArguments"],
                 self.spatialConfig["sourceSrs"],
                 self.spatialConfig["targetSrs"],
+                self.spatialConfig["filenameDemData"],
                 self.spatialConfig["filenameSrs"],
                 self.spatialConfig["demFilename"],
                 self.spatialConfig["demTitle"],
