@@ -1,2 +1,1 @@
-import process_s1_basket.common
 import process_s1_basket.ProcessBasket
