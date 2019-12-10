@@ -7,50 +7,57 @@ import stat
 import random
 import re
 import datetime
-import pathlib
 import workflow_common.common as wc
 from os.path import join
-from pathlib import Path
 
 log = logging.getLogger('luigi-interface')
 
 class RunJob(luigi.Task):
-    inputPath = luigi.Parameter()
     paths = luigi.DictParameter()
-    spatialConfig = luigi.DictParameter()
-    removeSourceFile = luigi.BoolParameter()
+    inputPath = luigi.Parameter()
+    workspaceRoot = luigi.Parameter()
+    runScriptPath = luigi.Parameter()
+    queueName = luigi.Parameter()
+    maxMemory = luigi.Parameter()
+    maxTime = luigi.Parameter()
     testProcessing = luigi.BoolParameter(default = False)
 
     def run(self):
-        log.info("Setting up directories for {}".format(self.inputPath))
-
         productName = wc.getProductNameFromPath(self.inputPath)
-        workspaceRoot = os.path.join(self.paths["processingDir"], productName)
-        
-        workingFileRoot = os.path.join(workspaceRoot, "working")
-        if not os.path.exists(workingFileRoot):
-            os.makedirs(workingFileRoot)
-
-        stateFileRoot = os.path.join(workspaceRoot, "state")
-        if not os.path.exists(stateFileRoot):
-            os.makedirs(stateFileRoot)
-
-        singularityScriptPath = os.path.join(workspaceRoot, "run_singularity_workflow.sh")
-        if not os.path.isfile(singularityScriptPath):
-            self.createSingularityScript(self.inputPath, workingFileRoot, stateFileRoot, singularityScriptPath)
+        bsubScriptPath = os.path.join(self.workspaceRoot, "submit_to_lotus.bsub")
 
         outputFile = {
             "productId": productName,
+            "bsubScriptPath": bsubScriptPath,
+            "workspaceRoot": self.workspaceRoot,
+            "queue": self.queueName,
+            "maxMemory": self.maxMemory,
+            "maxTime": self.maxTime,
             "jobId": None,
-            "submitTime": None,
+            "submitTime": None
         }
 
-        lotusCmd = "bsub -q short-serial -R 'rusage[mem=18000]' -M 18000 -W 12:00 -o {}/%J.out -e {}/%J.err {}" \
+        bsubScript = """#!/bin/bash
+#BSUB -q {}
+#BSUB -R 'rusage[mem={}]'
+#BSUB -M {}
+#BSUB -W {}
+#BSUB -o {}/%J.out
+#BSUB -e {}/%J.err
+
+{}""" \
             .format(
-                workspaceRoot,
-                workspaceRoot,
-                singularityScriptPath
+                self.queueName,
+                self.maxMemory,
+                self.maxMemory,
+                self.maxTime,
+                self.workspaceRoot,
+                self.workspaceRoot,
+                self.runScriptPath
             )
+
+        with open(bsubScriptPath, 'w') as bsubScriptFile:
+            bsubScriptFile.write(bsubScript)
 
         try:
             outputString = ""
@@ -59,8 +66,10 @@ class RunJob(luigi.Task):
                 outputString = "JOBID     USER    STAT  QUEUE      FROM_HOST   EXEC_HOST   JOB_NAME   SUBMIT_TIME"\
                                 +str(randomJobId)+"   test001  RUN   short-serial jasmin-sci1 16*host290. my-job1 Nov 16 16:51"
             else:
+                bsubCmd = "bsub < {}".format(bsubPath)
+                log.info("Submitting job using command: %s", bsubCmd)
                 output = subprocess.check_output(
-                    lotusCmd,
+                    bsubCmd,
                     stderr=subprocess.STDOUT,
                     shell=True)
                 outputString = output.decode("utf-8")
@@ -69,7 +78,7 @@ class RunJob(luigi.Task):
             match = re.search(regex, outputString)
             jobId = match.group(0)
 
-            log.info("Successfully submitted lotus job <%s> for %s using command: %s", jobId, productName, lotusCmd)
+            log.info("Successfully submitted lotus job <%s> for %s using bsub script: %s", jobId, productName, bsubScriptPath)
 
             outputFile["jobId"] = jobId
             outputFile["submitTime"] = str(datetime.datetime.now())
@@ -85,50 +94,3 @@ class RunJob(luigi.Task):
         outputFolder = self.paths["stateDir"]
         stateFilename = "RunJob_"+wc.getProductNameFromPath(self.inputPath)+".json"
         return wc.getLocalStateTarget(outputFolder, stateFilename)
-
-    def createSingularityScript(self, inputPath, workingFileRoot, stateFileRoot, singularityScriptPath):
-        staticDir = self.paths["staticDir"]
-        outputDir = self.paths["outputDir"]
-        singularityDir = self.paths["singularityDir"]
-        singularityImgPath = self.paths["singularityImgPath"]
-
-        path = Path(inputPath)
-        inputDir = path.parent
-        productName = wc.getProductNameFromPath(inputPath)
-        removeSourceFileFlag = "--removeInputFile" if self.removeSourceFile else ""
-
-        singularityCmd = "{}/singularity exec --bind {}:/working --bind {}:/state --bind {}:/input --bind {}:/static --bind {}:/output "\
-            "{} /app/exec.sh VerifyWorkflowOutput --productName={} --memoryLimit=16 --noStateCopy --spatialConfig='{{" \
-            "\"snapConfigUtmProj\": \"{}\", \"snapConfigCentralMeridian\": \"{}\", \"snapConfigFalseNorthing\": \"{}\", \"snapRunArguments\": \"{}\", " \
-            "\"sourceSrs\": \"{}\", \"targetSrs\": \"{}\", \"filenameDemData\": \"{}\", \"filenameSrs\": \"{}\", \"demFilename\": \"{}\", \"demTitle\":\"{}\", " \
-            "\"metadataProjection\": \"{}\", \"metadataPlaceName\":\"{}\", \"metadataParentPlaceName\":\"{}\"}}' {}" \
-            .format(singularityDir,
-                workingFileRoot,
-                stateFileRoot,
-                inputDir,
-                staticDir,
-                outputDir,
-                singularityImgPath,
-                productName,
-                self.spatialConfig["snapConfigUtmProj"],
-                self.spatialConfig["snapConfigCentralMeridian"],
-                self.spatialConfig["snapConfigFalseNorthing"],
-                self.spatialConfig["snapRunArguments"],
-                self.spatialConfig["sourceSrs"],
-                self.spatialConfig["targetSrs"],
-                self.spatialConfig["filenameDemData"],
-                self.spatialConfig["filenameSrs"],
-                self.spatialConfig["demFilename"],
-                self.spatialConfig["demTitle"],
-                self.spatialConfig["metadataProjection"],
-                self.spatialConfig["metadataPlaceName"],
-                self.spatialConfig["metadataParentPlaceName"],
-                removeSourceFileFlag)
-        
-        with open(singularityScriptPath, 'w') as singularityScript:
-            singularityScript.write(singularityCmd)
-
-        st = os.stat(singularityScriptPath)
-        os.chmod(singularityScriptPath, st.st_mode | 0o110 )
-
-        log.info("Created run_singularity_workflow.sh for " + inputPath + " with command " + singularityCmd)
