@@ -6,16 +6,18 @@ import workflow_common.common as wc
 import json
 from workflow_common.RunJob import RunJob
 from process_s1_basket.SetupWorkDirs import SetupWorkDirs
-from process_s1_basket.GetInputs import GetInputs
 from luigi.util import requires
 from os.path import join
 
 log = logging.getLogger('luigi-interface')
 
 @requires(SetupWorkDirs)
-class ProcessBasket(luigi.Task):
+class ProcessS1Basket(luigi.Task):
     paths = luigi.DictParameter()
     spatialConfig = luigi.DictParameter()
+    queueName = luigi.Parameter()
+    maxMemory = luigi.Parameter()
+    maxTime = luigi.Parameter()
     testProcessing = luigi.BoolParameter(default = False)
 
     def run(self):
@@ -32,9 +34,9 @@ class ProcessBasket(luigi.Task):
                 inputPath = productSetup["inputPath"],
                 workspaceRoot = productSetup["workspaceRoot"],
                 runScriptPath = productSetup["runScriptPath"],
-                queueName = "short-serial",
-                maxMemory = "18000",
-                maxTime = "12:00",
+                queueName = self.queueName,
+                maxMemory = self.maxMemory,
+                maxTime = self.maxTime,
                 testProcessing = self.testProcessing
             )
 

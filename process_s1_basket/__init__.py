@@ -2,4 +2,4 @@ import process_s1_basket.GetInputs
 import process_s1_basket.CreateRunScript
 import process_s1_basket.SetupWorkDir
 import process_s1_basket.SetupWorkDirs
-import process_s1_basket.ProcessBasket
+import process_s1_basket.ProcessS1Basket
