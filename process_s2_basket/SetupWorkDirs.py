@@ -15,9 +15,12 @@ log = logging.getLogger('luigi-interface')
 class SetupWorkDirs(luigi.Task):
     paths = luigi.DictParameter()
     demFilename = luigi.Parameter()
-    arcsiReprojection = luigi.BoolParameter(default=True)
-    outWktFilename = luigi.Parameter(default="BritishNationalGrid.wkt")
-    projAbbv = luigi.Parameter(default="osgb")
+    arcsiReprojection = luigi.BoolParameter(default=False)
+    outWktFilename = luigi.Parameter()
+    projAbbv = luigi.Parameter()
+    metadataConfigFile = luigi.Parameter()
+    metadataTemplate = luigi.Parameter()
+    maxCogProcesses = luigi.IntParameter()
 
     def run(self):
         getInputSwaths = {}
@@ -32,7 +35,10 @@ class SetupWorkDirs(luigi.Task):
                 demFilename = self.demFilename,
                 arcsiReprojection = self.arcsiReprojection,
                 outWktFilename = self.outWktFilename,
-                projAbbv = self.projAbbv
+                projAbbv = self.projAbbv,
+                metadataConfigFile = self.metadataConfigFile,
+                metadataTemplate = self.metadataTemplate,
+                maxCogProcesses = self.maxCogProcesses
             )
             tasks.append(task)
         yield tasks

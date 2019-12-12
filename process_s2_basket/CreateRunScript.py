@@ -20,6 +20,9 @@ class CreateRunScript(luigi.Task):
     arcsiReprojection = luigi.BoolParameter()
     outWktFilename = luigi.Parameter()
     projAbbv = luigi.Parameter()
+    metadataConfigFile = luigi.Parameter()
+    metadataTemplate = luigi.Parameter()
+    maxCogProcesses = luigi.IntParameter()
 
     def run(self):
         staticDir = self.paths["staticDir"]
@@ -30,8 +33,8 @@ class CreateRunScript(luigi.Task):
         singularityCmd = ""
 
         if self.arcsiReprojection:
-            singularityCmd = "{}/singularity exec --bind {}:/working --bind {}:/state --bind {}:/input --bind {}:/static --bind {}:/output "\
-                "{} FinaliseOutputs --dem=dem/{} --outWkt=wkt/{} --projAbbv={} --local-scheduler" \
+            singularityCmd = "{}/singularity exec --bind {}:/working --bind {}:/state --bind {}:/input --bind {}:/static --bind {}:/output {} /app/exec.sh "\
+                "FinaliseOutputs --dem=dem/{} --outWkt=wkt/{} --projAbbv={} --metadataConfigFile={} --metadataTemplate={} --maxCogProcesses={} --local-scheduler" \
                 .format(singularityDir,
                     self.workingFileRoot,
                     self.stateFileRoot,
@@ -41,10 +44,13 @@ class CreateRunScript(luigi.Task):
                     singularityImgPath,
                     self.demFilename,
                     self.outWktFilename,
-                    self.projAbbv)
+                    self.projAbbv,
+                    self.metadataConfigFile,
+                    self.metadataTemplate,
+                    self.maxCogProcesses)
         else:
-            singularityCmd = "{}/singularity exec --bind {}:/working --bind {}:/state --bind {}:/input --bind {}:/static --bind {}:/output "\
-                "{} FinaliseOutputs --dem=dem/{} --local-scheduler" \
+            singularityCmd = "{}/singularity exec --bind {}:/working --bind {}:/state --bind {}:/input --bind {}:/static --bind {}:/output {} /app/exec.sh "\
+                "FinaliseOutputs --dem=dem/{} --metadataConfigFile={} --metadataTemplate={} --maxCogProcesses={} --local-scheduler" \
                 .format(singularityDir,
                     self.workingFileRoot,
                     self.stateFileRoot,
@@ -52,7 +58,10 @@ class CreateRunScript(luigi.Task):
                     staticDir,
                     outputDir,
                     singularityImgPath,
-                    self.demFilename)
+                    self.demFilename,
+                    self.metadataConfigFile,
+                    self.metadataTemplate,
+                    self.maxCogProcesses)
         
         with open(self.runScriptPath, 'w') as runScript:
             runScript.write(singularityCmd)

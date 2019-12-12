@@ -16,6 +16,9 @@ class SetupWorkDir(luigi.Task):
     arcsiReprojection = luigi.BoolParameter()
     outWktFilename = luigi.Parameter()
     projAbbv = luigi.Parameter()
+    metadataConfigFile = luigi.Parameter()
+    metadataTemplate = luigi.Parameter()
+    maxCogProcesses = luigi.IntParameter()
 
     def run(self):
         log.info("Setting up directories for {}".format(self.swathDir))
@@ -42,7 +45,10 @@ class SetupWorkDir(luigi.Task):
                 demFilename = self.demFilename,
                 arcsiReprojection = self.arcsiReprojection,
                 outWktFilename = self.outWktFilename,
-                projAbbv = self.projAbbv
+                projAbbv = self.projAbbv,
+                metadataConfigFile = self.metadataConfigFile,
+                metadataTemplate = self.metadataTemplate,
+                maxCogProcesses = self.maxCogProcesses
             )
             yield task
 
@@ -55,7 +61,10 @@ class SetupWorkDir(luigi.Task):
             "demFilename": self.demFilename,
             "arcsiReprojection": self.arcsiReprojection,
             "outWktFilename": self.outWktFilename,
-            "projAbbv": self.projAbbv
+            "projAbbv": self.projAbbv,
+            "metadataConfigFile": self.metadataConfigFile,
+            "metadataTemplate": self.metadataTemplate,
+            "maxCogProcesses": self.maxCogProcesses
         }
 
         with self.output().open("w") as outFile:
