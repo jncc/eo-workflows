@@ -66,7 +66,7 @@ class RunJob(luigi.Task):
                 outputString = "JOBID     USER    STAT  QUEUE      FROM_HOST   EXEC_HOST   JOB_NAME   SUBMIT_TIME"\
                                 +str(randomJobId)+"   test001  RUN   short-serial jasmin-sci1 16*host290. my-job1 Nov 16 16:51"
             else:
-                bsubCmd = "bsub < {}".format(bsubPath)
+                bsubCmd = "bsub < {}".format(bsubScriptPath)
                 log.info("Submitting job using command: %s", bsubCmd)
                 output = subprocess.check_output(
                     bsubCmd,
