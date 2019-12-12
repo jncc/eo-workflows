@@ -34,7 +34,7 @@ class CreateRunScript(luigi.Task):
 
         if self.arcsiReprojection:
             singularityCmd = "{}/singularity exec --bind {}:/working --bind {}:/state --bind {}:/input --bind {}:/static --bind {}:/output {} /app/exec.sh "\
-                "FinaliseOutputs --dem=dem/{} --outWkt=wkt/{} --projAbbv={} --metadataConfigFile={} --metadataTemplate={} --maxCogProcesses={} --local-scheduler" \
+                "FinaliseOutputs --dem=dem/{} --outWkt={} --projAbbv={} --metadataConfigFile={} --metadataTemplate={} --maxCogProcesses={} --local-scheduler" \
                 .format(singularityDir,
                     self.workingFileRoot,
                     self.stateFileRoot,
