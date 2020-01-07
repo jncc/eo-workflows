@@ -14,6 +14,7 @@ log = logging.getLogger('luigi-interface')
 @requires(GetInputSwaths)
 class SetupWorkDirs(luigi.Task):
     paths = luigi.DictParameter()
+    mpi = luigi.BoolParameter(default = False)
     demFilename = luigi.Parameter()
     arcsiReprojection = luigi.BoolParameter(default=False)
     outWktFilename = luigi.Parameter()
@@ -32,6 +33,7 @@ class SetupWorkDirs(luigi.Task):
             task = SetupWorkDir(
                 swathDir = swath["swathDir"],
                 paths = self.paths,
+                mpi = self.mpi,
                 demFilename = self.demFilename,
                 arcsiReprojection = self.arcsiReprojection,
                 outWktFilename = self.outWktFilename,

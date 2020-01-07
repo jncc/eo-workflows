@@ -11,6 +11,7 @@ log = logging.getLogger('luigi-interface')
 
 class SetupWorkDir(luigi.Task):
     swathDir = luigi.Parameter()
+    mpi = luigi.BoolParameter()
     paths = luigi.DictParameter()
     demFilename = luigi.Parameter()
     arcsiReprojection = luigi.BoolParameter()
@@ -35,22 +36,22 @@ class SetupWorkDir(luigi.Task):
             os.makedirs(stateFileRoot)
 
         runScriptPath = os.path.join(workspaceRoot, "run_singularity_workflow.sh")
-        if not os.path.isfile(runScriptPath):
-            task = CreateRunScript(
-                paths = self.paths,
-                swathDir = self.swathDir,
-                workingFileRoot = workingFileRoot,
-                stateFileRoot = stateFileRoot,
-                runScriptPath = runScriptPath,
-                demFilename = self.demFilename,
-                arcsiReprojection = self.arcsiReprojection,
-                outWktFilename = self.outWktFilename,
-                projAbbv = self.projAbbv,
-                metadataConfigFile = self.metadataConfigFile,
-                metadataTemplate = self.metadataTemplate,
-                maxCogProcesses = self.maxCogProcesses
-            )
-            yield task
+        task = CreateRunScript(
+            paths = self.paths,
+            mpi = self.mpi,
+            swathDir = self.swathDir,
+            workingFileRoot = workingFileRoot,
+            stateFileRoot = stateFileRoot,
+            runScriptPath = runScriptPath,
+            demFilename = self.demFilename,
+            arcsiReprojection = self.arcsiReprojection,
+            outWktFilename = self.outWktFilename,
+            projAbbv = self.projAbbv,
+            metadataConfigFile = self.metadataConfigFile,
+            metadataTemplate = self.metadataTemplate,
+            maxCogProcesses = self.maxCogProcesses
+        )
+        yield task
 
         outputFile = {
             "swathDir": self.swathDir,

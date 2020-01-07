@@ -1,7 +1,6 @@
 import luigi
 import logging
 import os
-import glob
 import workflow_common.common as wc
 import json
 from workflow_common.RunJob import RunJob
@@ -16,6 +15,7 @@ log = logging.getLogger('luigi-interface')
 class ProcessS2Basket(luigi.Task):
     paths = luigi.DictParameter()
     maxMemory = luigi.IntParameter()
+    mpi = luigi.BoolParameter(default = False)
     hoursPerGranule = luigi.IntParameter()
     shortSerialQueueName = luigi.Parameter()
     shortSerialMaxHours = luigi.IntParameter()
@@ -37,18 +37,19 @@ class ProcessS2Basket(luigi.Task):
         tasks = []
         for swathSetup in setupWorkDirs["swathSetups"]:
             queueName = self.shortSerialQueueName
-            maxHours = 0
+            maxHours = 2
 
-            for swath in getInputSwaths["swaths"]:
-                if swath["swathDir"] == swathSetup["swathDir"]:
-                    noOfGranules = len(swath["productPaths"])
-                    maxHours = noOfGranules * self.hoursPerGranule
-                    if maxHours > self.shortSerialMaxHours and maxHours <= self.longSerialMaxHours:
-                        queueName = self.longSerialQueueName
-                    elif maxHours > self.longSerialMaxHours:
-                        raise RuntimeError("Swath of size {} granules has max runtime of {} hours which exceeds long-serial limit of {} hours"\
-                            .format(noOfGranules, maxHours, self.longSerialMaxHours))
-                    break
+            if not self.mpi:
+                for swath in getInputSwaths["swaths"]:
+                    if swath["swathDir"] == swathSetup["swathDir"]:
+                        noOfGranules = len(swath["productPaths"])
+                        maxHours = noOfGranules * self.hoursPerGranule
+                        if maxHours > self.shortSerialMaxHours and maxHours <= self.longSerialMaxHours:
+                            queueName = self.longSerialQueueName
+                        elif maxHours > self.longSerialMaxHours:
+                            raise RuntimeError("Swath of size {} granules has max runtime of {} hours which exceeds long-serial limit of {} hours"\
+                                .format(noOfGranules, maxHours, self.longSerialMaxHours))
+                        break
 
             task = RunJob(
                 paths = self.paths,
@@ -79,4 +80,4 @@ class ProcessS2Basket(luigi.Task):
 
     def output(self):
         outputFolder = self.paths["stateDir"]
-        return wc.getLocalStateTarget(outputFolder, "ProcessBasket.json")
+        return wc.getLocalStateTarget(outputFolder, "ProcessS2Basket.json")

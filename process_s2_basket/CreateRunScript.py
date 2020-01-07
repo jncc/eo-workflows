@@ -1,7 +1,6 @@
 import luigi
 import logging
 import os
-import glob
 import workflow_common.common as wc
 import json
 import pathlib
@@ -12,6 +11,7 @@ log = logging.getLogger('luigi-interface')
 
 class CreateRunScript(luigi.Task):
     paths = luigi.DictParameter()
+    mpi = luigi.BoolParameter()
     swathDir = luigi.Parameter()
     workingFileRoot = luigi.Parameter()
     stateFileRoot = luigi.Parameter()
@@ -29,39 +29,40 @@ class CreateRunScript(luigi.Task):
         outputDir = self.paths["outputDir"]
         singularityDir = self.paths["singularityDir"]
         singularityImgPath = self.paths["singularityImgPath"]
+        luigiTargetTask = "FinaliseOutputs"
 
-        singularityCmd = ""
+        log.info("mpi flag {}".format(self.mpi))
+        
+        if self.mpi and not os.path.isfile(os.path.join(self.stateFileRoot, "ProcessRawToArd.json")):
+            log.info("what")
+            luigiTargetTask = "ProcessRawToArd"
+
+        singularityCmd = "{}/singularity exec --bind {}:/working --bind {}:/state --bind {}:/input --bind {}:/static --bind {}:/output {} /app/exec.sh "\
+            "{} --dem={} --metadataConfigFile={} --metadataTemplate={} --maxCogProcesses={} --local-scheduler" \
+            .format(singularityDir,
+                self.workingFileRoot,
+                self.stateFileRoot,
+                self.swathDir,
+                staticDir,
+                outputDir,
+                singularityImgPath,
+                luigiTargetTask,
+                self.demFilename,
+                self.metadataConfigFile,
+                self.metadataTemplate,
+                self.maxCogProcesses)
 
         if self.arcsiReprojection:
-            singularityCmd = "{}/singularity exec --bind {}:/working --bind {}:/state --bind {}:/input --bind {}:/static --bind {}:/output {} /app/exec.sh "\
-                "FinaliseOutputs --dem={} --outWkt={} --projAbbv={} --metadataConfigFile={} --metadataTemplate={} --maxCogProcesses={} --local-scheduler" \
-                .format(singularityDir,
-                    self.workingFileRoot,
-                    self.stateFileRoot,
-                    self.swathDir,
-                    staticDir,
-                    outputDir,
-                    singularityImgPath,
-                    self.demFilename,
+            singularityCmd += " --outWkt={} --projAbbv={}" \
+                .format(
                     self.outWktFilename,
-                    self.projAbbv,
-                    self.metadataConfigFile,
-                    self.metadataTemplate,
-                    self.maxCogProcesses)
-        else:
-            singularityCmd = "{}/singularity exec --bind {}:/working --bind {}:/state --bind {}:/input --bind {}:/static --bind {}:/output {} /app/exec.sh "\
-                "FinaliseOutputs --dem={} --metadataConfigFile={} --metadataTemplate={} --maxCogProcesses={} --local-scheduler" \
-                .format(singularityDir,
-                    self.workingFileRoot,
-                    self.stateFileRoot,
-                    self.swathDir,
-                    staticDir,
-                    outputDir,
-                    singularityImgPath,
-                    self.demFilename,
-                    self.metadataConfigFile,
-                    self.metadataTemplate,
-                    self.maxCogProcesses)
+                    self.projAbbv)
+
+        if self.mpi:
+            log.info("what2")
+            singularityCmd += " --jasminMpi"
+            self.createJasminMpiConfigFile()
+        
         
         with open(self.runScriptPath, 'w') as runScript:
             runScript.write(singularityCmd)
@@ -77,6 +78,25 @@ class CreateRunScript(luigi.Task):
 
         with self.output().open("w") as outFile:
             outFile.write(wc.getFormattedJson(outputFile))
+
+    def createJasminMpiConfigFile(self):
+        mpiConfigPath = os.path.join(self.workingFileRoot, "jasmin-mpi-config.json")
+        mpiConfig = {
+            "container" : {
+                "location" : self.paths["arcsiMpiBaseImgPath"],
+                "mounts" : [
+                    (self.workingFileRoot,"/working"),
+                    (self.stateFileRoot,"/state"),
+                    (self.swathDir,"/input"),
+                    (self.paths["staticDir"],"/static"),
+                    (self.paths["outputDir"],"/output")
+                ]
+            },
+            "jobTemplate" : "s2_mpi_job_template.bsub"
+        }
+
+        with open(mpiConfigPath, 'w') as mpiConfigFile:
+            mpiConfigFile.write(wc.getFormattedJson(mpiConfig))
 
     def output(self):
         outputFolder = self.paths["stateDir"]

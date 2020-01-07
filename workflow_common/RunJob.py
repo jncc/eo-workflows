@@ -37,6 +37,7 @@ class RunJob(luigi.Task):
             "submitTime": None
         }
 
+        #todo template this
         bsubScript = """#!/bin/bash
 #BSUB -q {}
 #BSUB -R 'rusage[mem={}]'

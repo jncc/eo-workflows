@@ -58,4 +58,4 @@ class ProcessS1Basket(luigi.Task):
 
     def output(self):
         outputFolder = self.paths["stateDir"]
-        return wc.getLocalStateTarget(outputFolder, "ProcessBasket.json")
+        return wc.getLocalStateTarget(outputFolder, "ProcessS1Basket.json")
