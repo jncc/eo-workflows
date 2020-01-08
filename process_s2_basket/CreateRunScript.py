@@ -29,16 +29,10 @@ class CreateRunScript(luigi.Task):
         outputDir = self.paths["outputDir"]
         singularityDir = self.paths["singularityDir"]
         singularityImgPath = self.paths["singularityImgPath"]
-        luigiTargetTask = "FinaliseOutputs"
-
-        log.info("mpi flag {}".format(self.mpi))
-        
-        if self.mpi and not os.path.isfile(os.path.join(self.stateFileRoot, "ProcessRawToArd.json")):
-            log.info("what")
-            luigiTargetTask = "ProcessRawToArd"
+        luigiTargetTask = "ProcessRawToArd" if self.isFirstStepOfMpiProcessing() else "FinaliseOutputs"
 
         singularityCmd = "{}/singularity exec --bind {}:/working --bind {}:/state --bind {}:/input --bind {}:/static --bind {}:/output {} /app/exec.sh "\
-            "{} --dem={} --metadataConfigFile={} --metadataTemplate={} --maxCogProcesses={} --local-scheduler" \
+            "{} --dem={} --local-scheduler" \
             .format(singularityDir,
                 self.workingFileRoot,
                 self.stateFileRoot,
@@ -47,10 +41,14 @@ class CreateRunScript(luigi.Task):
                 outputDir,
                 singularityImgPath,
                 luigiTargetTask,
-                self.demFilename,
-                self.metadataConfigFile,
-                self.metadataTemplate,
-                self.maxCogProcesses)
+                self.demFilename)
+
+        if not self.isFirstStepOfMpiProcessing():
+            singularityCmd += " --metadataConfigFile={} --metadataTemplate={} --maxCogProcesses={}" \
+                .format(
+                    self.metadataConfigFile,
+                    self.metadataTemplate,
+                    self.maxCogProcesses)
 
         if self.arcsiReprojection:
             singularityCmd += " --outWkt={} --projAbbv={}" \
@@ -59,7 +57,6 @@ class CreateRunScript(luigi.Task):
                     self.projAbbv)
 
         if self.mpi:
-            log.info("what2")
             singularityCmd += " --jasminMpi"
             self.createJasminMpiConfigFile()
         
@@ -78,6 +75,9 @@ class CreateRunScript(luigi.Task):
 
         with self.output().open("w") as outFile:
             outFile.write(wc.getFormattedJson(outputFile))
+
+    def isFirstStepOfMpiProcessing(self):
+        return self.mpi and not os.path.isfile(os.path.join(self.stateFileRoot, "ProcessRawToArd.json"))
 
     def createJasminMpiConfigFile(self):
         mpiConfigPath = os.path.join(self.workingFileRoot, "jasmin-mpi-config.json")
