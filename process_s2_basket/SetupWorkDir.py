@@ -12,6 +12,7 @@ log = logging.getLogger('luigi-interface')
 class SetupWorkDir(luigi.Task):
     swathDir = luigi.Parameter()
     mpi = luigi.BoolParameter()
+    lsfCommandsDir = luigi.Parameter()
     paths = luigi.DictParameter()
     demFilename = luigi.Parameter()
     arcsiReprojection = luigi.BoolParameter()
@@ -39,6 +40,7 @@ class SetupWorkDir(luigi.Task):
         task = CreateRunScript(
             paths = self.paths,
             mpi = self.mpi,
+            lsfCommandsDir = self.lsfCommandsDir,
             swathDir = self.swathDir,
             workingFileRoot = workingFileRoot,
             stateFileRoot = stateFileRoot,
