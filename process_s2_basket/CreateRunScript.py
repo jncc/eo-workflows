@@ -94,7 +94,8 @@ class CreateRunScript(luigi.Task):
                     (self.paths["outputDir"],"/output")
                 ]
             },
-            "jobTemplate" : "s2_mpi_job_template.bsub"
+            "jobTemplate" : "s2_mpi_job_template.bsub",
+            "jobWorkingDir" : self.workingFileRoot
         }
 
         with open(mpiConfigPath, 'w') as mpiConfigFile:
