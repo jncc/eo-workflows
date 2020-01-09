@@ -33,7 +33,7 @@ class CreateRunScript(luigi.Task):
         luigiTargetTask = "ProcessRawToArd" if self.isFirstStepOfMpiProcessing() else "FinaliseOutputs"
 
         singularityCmd = "{}/singularity exec --bind {}:/working --bind {}:/state --bind {}:/input --bind {}:/static --bind {}:/output --bind {}:/apps/lsf {} /app/exec.sh "\
-            "{} --dem={} --local-scheduler" \
+            "{} --dem={} --jasminPathEnv=$PATH --local-scheduler" \
             .format(singularityDir,
                 self.workingFileRoot,
                 self.stateFileRoot,
