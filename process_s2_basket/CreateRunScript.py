@@ -91,7 +91,8 @@ class CreateRunScript(luigi.Task):
                     (self.stateFileRoot,"/state"),
                     (self.swathDir,"/input"),
                     (self.paths["staticDir"],"/static"),
-                    (self.paths["outputDir"],"/output")
+                    (self.paths["outputDir"],"/output"),
+                    (self.paths["platformMpiDir"],"/opt/platform_mpi")
                 ]
             },
             "jobTemplate" : "s2_mpi_job_template.bsub",
