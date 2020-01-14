@@ -4,7 +4,7 @@ import os
 import glob
 import workflow_common.common as wc
 import json
-from workflow_common.RunJob import RunJob
+from workflow_common.SubmitJob import SubmitJob
 from process_s1_basket.SetupWorkDirs import SetupWorkDirs
 from luigi.util import requires
 from os.path import join
@@ -29,7 +29,7 @@ class ProcessS1Basket(luigi.Task):
 
         tasks = []
         for productSetup in setupWorkDirs["productSetups"]:
-            task = RunJob(
+            task = SubmitJob(
                 paths = self.paths,
                 inputPath = productSetup["inputPath"],
                 workspaceRoot = productSetup["workspaceRoot"],
