@@ -8,6 +8,7 @@ import random
 import re
 import datetime
 import workflow_common.common as wc
+import time
 from os.path import join
 
 log = logging.getLogger('luigi-interface')
@@ -40,6 +41,9 @@ class SubmitJob(luigi.Task):
                     bsubCmd,
                     stderr=subprocess.STDOUT,
                     shell=True)
+
+                time.sleep(5) # allow time for lotus to process job submission
+                
                 outputString = output.decode("utf-8")
 
             regex = '[0-9]{5,}' # job ID is at least 5 digits
