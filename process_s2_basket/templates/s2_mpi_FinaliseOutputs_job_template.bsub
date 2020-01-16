@@ -1,5 +1,5 @@
 # Run post-ARCSI processing tasks
-#BSUB -w ‘done($upstreamJobId)’
+#BSUB -w 'done($upstreamJobId)'
 #BSUB -q par-single
 #BSUB -n 16
 #BSUB -We 3:00
