@@ -3,7 +3,6 @@ import logging
 import os
 import workflow_common.common as wc
 import json
-import pathlib
 from string import Template
 from workflow_common.SubmitJob import SubmitJob
 from process_s2_basket.GetInputSwaths import GetInputSwaths
@@ -36,7 +35,7 @@ class SubmitProcessRawToArdJobs(luigi.Task):
 
         basketDir = self.paths["basketDir"]
 
-        with open(os.path.join(pathlib.Path(__file__).parent, 'templates/s2_mpi_ProcessRawToArd_job_template.bsub'), 'r') as t:
+        with open(os.path.join(self.paths["templatesDir"], 's2_mpi_ProcessRawToArd_job_template.bsub'), 'r') as t:
             bsubTemplate = Template(t.read())
 
         tasks = []

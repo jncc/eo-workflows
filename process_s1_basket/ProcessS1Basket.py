@@ -3,7 +3,6 @@ import logging
 import os
 import workflow_common.common as wc
 import json
-import pathlib
 from string import Template
 from workflow_common.SubmitJob import SubmitJob
 from process_s1_basket.SetupWorkDirs import SetupWorkDirs
@@ -25,7 +24,7 @@ class ProcessS1Basket(luigi.Task):
 
         basketDir = self.paths["basketDir"]
 
-        with open(os.path.join(pathlib.Path(__file__).parent, 'templates/s1_job_template.bsub'), 'r') as t:
+        with open(os.path.join(self.paths["templatesDir"], 's1_job_template.bsub'), 'r') as t:
             bsubTemplate = Template(t.read())
 
         tasks = []
