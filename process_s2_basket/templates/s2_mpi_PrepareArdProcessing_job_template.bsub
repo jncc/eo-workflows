@@ -1,6 +1,7 @@
 # Run pre-ARCSI processing tasks
 #BSUB -q short-serial
-#BSUB -W 2:00
+#BSUB -We 1:00
+#BSUB -W 4:00
 #BSUB -R "rusage[mem=16000]"
 #BSUB -M 16000
 #BSUB -cwd $jobWorkingDir

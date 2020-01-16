@@ -2,7 +2,8 @@
 #BSUB -w ‘done($upstreamJobId)’
 #BSUB -q par-multi
 #BSUB -n $nodes
-#BSUB -W 10:00
+#BSUB -We 6:00
+#BSUB -W 12:00
 #BSUB -cwd $jobWorkingDir
 #BSUB -o $jobWorkingDir/%J.out
 #BSUB -e $jobWorkingDir/%J.err

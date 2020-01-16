@@ -1,9 +1,10 @@
 import luigi
 import logging
 import os
-import glob
 import workflow_common.common as wc
 import json
+import pathlib
+from string import Template
 from workflow_common.SubmitJob import SubmitJob
 from process_s1_basket.SetupWorkDirs import SetupWorkDirs
 from luigi.util import requires
@@ -15,9 +16,6 @@ log = logging.getLogger('luigi-interface')
 class ProcessS1Basket(luigi.Task):
     paths = luigi.DictParameter()
     spatialConfig = luigi.DictParameter()
-    queueName = luigi.Parameter()
-    maxMemory = luigi.Parameter()
-    maxTime = luigi.Parameter()
     testProcessing = luigi.BoolParameter(default = False)
 
     def run(self):
@@ -27,16 +25,28 @@ class ProcessS1Basket(luigi.Task):
 
         basketDir = self.paths["basketDir"]
 
+        with open(os.path.join(pathlib.Path(__file__).parent, 'templates/s1_job_template.bsub'), 'r') as t:
+            bsubTemplate = Template(t.read())
+
         tasks = []
         for productSetup in setupWorkDirs["productSetups"]:
+            productName = wc.getProductNameFromPath(productSetup["inputPath"])
+
+            bsubParams = {
+                "jobWorkingDir" : productSetup["workspaceRoot"],
+                "runScriptPath" : productSetup["runScriptPath"]
+            }
+
+            bsub = bsubTemplate.substitute(bsubParams)
+            bsubScriptPath = os.path.join(productSetup["workspaceRoot"], "process_s1_ard.bsub")
+
+            with open(bsubScriptPath, 'w') as bsubScriptFile:
+                bsubScriptFile.write(bsub)
+
             task = SubmitJob(
                 paths = self.paths,
-                inputPath = productSetup["inputPath"],
-                workspaceRoot = productSetup["workspaceRoot"],
-                runScriptPath = productSetup["runScriptPath"],
-                queueName = self.queueName,
-                maxMemory = self.maxMemory,
-                maxTime = self.maxTime,
+                productName = productName,
+                bsubScriptPath = bsubScriptPath,
                 testProcessing = self.testProcessing
             )
 
