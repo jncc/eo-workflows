@@ -17,6 +17,7 @@ class SubmitJob(luigi.Task):
     productName = luigi.Parameter()
     bsubScriptPath = luigi.Parameter()
     testProcessing = luigi.BoolParameter(default = False)
+    jobId = ""
 
     def run(self):
         try:
@@ -43,14 +44,14 @@ class SubmitJob(luigi.Task):
 
             regex = '[0-9]{5,}' # job ID is at least 5 digits
             match = re.search(regex, outputString)
-            jobId = match.group(0)
+            self.jobId = match.group(0)
 
-            log.info("Successfully submitted lotus job <%s> for %s using bsub script: %s", jobId, productName, self.bsubScriptPath)
+            log.info("Successfully submitted lotus job <%s> for %s using bsub script: %s", self.jobId, self.productName, self.bsubScriptPath)
 
-            outputFile["jobId"] = jobId
+            outputFile["jobId"] = self.jobId
             outputFile["submitTime"] = str(datetime.datetime.now())
 
-            with self.output(jobId).open('w') as out:
+            with self.output().open('w') as out:
                 out.write(wc.getFormattedJson(outputFile))
 
         except subprocess.CalledProcessError as e:
@@ -58,7 +59,7 @@ class SubmitJob(luigi.Task):
             log.error(errStr)
             raise RuntimeError(errStr)
         
-    def output(self, jobId):
+    def output(self):
         outputFolder = self.paths["stateDir"]
-        stateFilename = "SubmitJob_{}_{}.json".format(self.productName, jobId)
+        stateFilename = "SubmitJob_{}_{}.json".format(self.productName, self.jobId)
         return wc.getLocalStateTarget(outputFolder, stateFilename)

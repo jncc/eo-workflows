@@ -3,44 +3,54 @@ import logging
 import os
 import workflow_common.common as wc
 import json
+import pathlib
+from string import Template
 from workflow_common.SubmitJob import SubmitJob
 from process_s2_basket.GetInputSwaths import GetInputSwaths
 from process_s2_basket.SetupWorkDirs import SetupWorkDirs
-from process_s2_basket.SubmitProcessRawToArdJobs import SubmitProcessRawToArdJobs
 from luigi.util import requires
 from os.path import join
 
 log = logging.getLogger('luigi-interface')
 
-@requires(SetupWorkDirs, SubmitProcessRawToArdJobs)
-class ProcessS2BasketWithMpi(luigi.Task):
+@requires(GetInputSwaths, SetupWorkDirs)
+class ProcessS2BasketSerial(luigi.Task):
     paths = luigi.DictParameter()
+    hoursPerGranule = luigi.IntParameter()
+    demFilename = luigi.Parameter()
+    outWktFilename = luigi.Parameter()
+    metadataConfigFile = luigi.Parameter()
+    metadataTemplate = luigi.Parameter()
+    maxCogProcesses = luigi.IntParameter()
     testProcessing = luigi.BoolParameter(default = False)
 
     def run(self):
-        setupWorkDirs = {}
-        with self.input()[0].open('r') as setupWorkDirsInfo:
-            setupWorkDirs = json.load(setupWorkDirsInfo)
+        getInputSwaths = {}
+        with self.input()[0].open('r') as getInputSwathsInfo:
+            getInputSwaths = json.load(getInputSwathsInfo)
 
-        prepareArdProcessingJobs = {}
-        with self.input()[1].open('r') as submitProcessRawToArdJobsInfo:
-            prepareArdProcessingJobs = json.load(submitProcessRawToArdJobsInfo)
+        setupWorkDirs = {}
+        with self.input()[1].open('r') as setupWorkDirsInfo:
+            setupWorkDirs = json.load(setupWorkDirsInfo)
 
         basketDir = self.paths["basketDir"]
 
-        with open('templates/s2_FinaliseOutputs_job_template.bsub', 'r') as t:
+        with open(os.path.join(pathlib.Path(__file__).parent, 'templates/s2_serial_FinaliseOutputs_job_template.bsub'), 'r') as t:
             bsubTemplate = Template(t.read())
 
         tasks = []
         for swathSetup in setupWorkDirs["swathSetups"]:
             productName = wc.getProductNameFromPath(swathSetup["swathDir"])
 
-            for submittedSwath in prepareArdProcessingJobsInfo["submittedSwaths"]:
-                if submittedSwath["productId"] == productName:
-                    upstreamJobId = submittedSwath["jobId"]
+            for swath in getInputSwaths["swaths"]:
+                if swath["swathDir"] == swathSetup["swathDir"]:
+                    noOfGranules = len(swath["productPaths"])
+                    break
+
+            arcsiReprojection = "--outWkt={} --projAbbv={}".format(self.outWktFilename, self.projAbbv) if self.arcsiReprojection else ""
 
             bsubParams = {
-                "upstreamJobId": upstreamJobId,
+                "maxRunTime": noOfGranules * self.hoursPerGranule,
                 "jobWorkingDir" : swathSetup["workspaceRoot"],
                 "workingMount" : swathSetup["workingFileRoot"],
                 "stateMount" : swathSetup["stateFileRoot"],
@@ -48,8 +58,10 @@ class ProcessS2BasketWithMpi(luigi.Task):
                 "staticMount" : self.paths["staticDir"],
                 "outputMount" : self.paths["outputDir"],
                 "s2ArdContainer": self.paths["singularityImgPath"],
-                "dem": self.dem,
-                "outWkt" : self.outWkt
+                "dem": self.demFilename,
+                "arcsiReprojection" : arcsiReprojection,
+                "metadataConfigFile": self.metadataConfigFile,
+                "metadataTemplate": self.metadataTemplate
             }
 
             bsub = bsubTemplate.substitute(bsubParams)
@@ -81,4 +93,4 @@ class ProcessS2BasketWithMpi(luigi.Task):
 
     def output(self):
         outputFolder = self.paths["stateDir"]
-        return wc.getLocalStateTarget(outputFolder, "ProcessS2BasketWithMpi.json")
+        return wc.getLocalStateTarget(outputFolder, "ProcessS2BasketSerial.json")

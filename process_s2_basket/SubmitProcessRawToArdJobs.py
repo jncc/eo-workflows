@@ -3,6 +3,8 @@ import logging
 import os
 import workflow_common.common as wc
 import json
+import pathlib
+from string import Template
 from workflow_common.SubmitJob import SubmitJob
 from process_s2_basket.GetInputSwaths import GetInputSwaths
 from process_s2_basket.SetupWorkDirs import SetupWorkDirs
@@ -15,13 +17,8 @@ log = logging.getLogger('luigi-interface')
 @requires(GetInputSwaths, SetupWorkDirs, SubmitPrepareArdProcessingJobs)
 class SubmitProcessRawToArdJobs(luigi.Task):
     paths = luigi.DictParameter()
-    maxMemory = luigi.IntParameter()
-    mpi = luigi.BoolParameter(default = False)
-    hoursPerGranule = luigi.IntParameter()
-    shortSerialQueueName = luigi.Parameter()
-    shortSerialMaxHours = luigi.IntParameter()
-    longSerialQueueName = luigi.Parameter()
-    longSerialMaxHours = luigi.IntParameter()
+    arcsiReprojection = luigi.BoolParameter(default = False)
+    projAbbv = luigi.Parameter()
     testProcessing = luigi.BoolParameter(default = False)
 
     def run(self):
@@ -39,7 +36,7 @@ class SubmitProcessRawToArdJobs(luigi.Task):
 
         basketDir = self.paths["basketDir"]
 
-        with open('templates/s2_ProcessRawToArd_job_template.bsub', 'r') as t:
+        with open(os.path.join(pathlib.Path(__file__).parent, 'templates/s2_mpi_ProcessRawToArd_job_template.bsub'), 'r') as t:
             bsubTemplate = Template(t.read())
 
         tasks = []
@@ -55,6 +52,9 @@ class SubmitProcessRawToArdJobs(luigi.Task):
                 if submittedSwath["productId"] == productName:
                     upstreamJobId = submittedSwath["jobId"]
 
+            arcsiReprojection = "--arcsiReprojection --projAbbv {}".format(self.projAbbv) if self.arcsiReprojection else ""
+            testProcessing = "--testProcessing" if self.testProcessing else ""
+
             bsubParams = {
                 "upstreamJobId": upstreamJobId,
                 "nodes": noOfGranules + 1,
@@ -64,9 +64,11 @@ class SubmitProcessRawToArdJobs(luigi.Task):
                 "inputMount" : swathSetup["swathDir"],
                 "staticMount" : self.paths["staticDir"],
                 "outputMount" : self.paths["outputDir"],
+                "platformMpiMount" : self.paths["platformMpiDir"],
+                "singularityDir": self.paths["singularityDir"],
                 "s2ArdContainer": self.paths["singularityImgPath"],
-                "dem": self.dem,
-                "outWkt" : self.outWkt
+                "arcsiReprojection": arcsiReprojection,
+                "testProcessing": testProcessing
             }
 
             bsub = bsubTemplate.substitute(bsubParams)
