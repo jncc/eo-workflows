@@ -41,7 +41,7 @@ class ProcessRawToArd(luigi.Task):
             )
         b = "arcsimpi.py -s sen2 --stats -f KEA --fullimgouts -p RAD SHARP SATURATE CLOUDS TOPOSHADOW STDSREF DOSAOTSGL METADATA"
         c = "-k clouds.kea meta.json sat.kea toposhad.kea valid.kea stdsref.kea --interpresamp near --interp cubic"
-        d = "-t /working/ -o {} --dem {} -i {}" \
+        d = "-t /tmp -o {} --dem {} -i {}" \
             .format(
                 prepareArdProcessing["tempOutDir"],
                 prepareArdProcessing["demFilePath"],
