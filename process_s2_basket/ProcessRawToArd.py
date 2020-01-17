@@ -18,7 +18,6 @@ class ProcessRawToArd(luigi.Task):
     stateMount = luigi.Parameter()
     inputMount = luigi.Parameter()
     staticMount = luigi.Parameter()
-    outputMount = luigi.Parameter()
     platformMpiMount = luigi.Parameter()
     projAbbv = luigi.Parameter()
     testProcessing = luigi.BoolParameter(default = False)
@@ -30,22 +29,20 @@ class ProcessRawToArd(luigi.Task):
 
         expectedProducts = prepareArdProcessing["expectedProducts"]
         
-        a = "mpirun.lotus {}/singularity exec --bind {}:/working --bind {}:/state --bind {}:/input --bind {}:/static --bind {}:/output --bind {}:/opt/platform_mpi {}" \
+        a = "mpirun.lotus {}/singularity exec --bind {}:/working --bind {}:/state --bind {}:/input --bind {}:/static --bind {}:/opt/platform_mpi {}" \
             .format(
                 self.singularityDir,
                 self.workingMount,
                 self.stateMount,
                 self.inputMount,
                 self.staticMount,
-                self.outputMount,
                 self.platformMpiMount,
                 self.singularityImgPath
             )
         b = "arcsimpi.py -s sen2 --stats -f KEA --fullimgouts -p RAD SHARP SATURATE CLOUDS TOPOSHADOW STDSREF DOSAOTSGL METADATA"
         c = "-k clouds.kea meta.json sat.kea toposhad.kea valid.kea stdsref.kea --interpresamp near --interp cubic"
-        d = "-t {} -o {} --dem {} -i {}" \
+        d = "-t /working/ -o {} --dem {} -i {}" \
             .format(
-                self.workingMount,
                 prepareArdProcessing["tempOutDir"],
                 prepareArdProcessing["demFilePath"],
                 prepareArdProcessing["fileListPath"]
