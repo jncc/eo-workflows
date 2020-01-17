@@ -2,8 +2,8 @@
 #BSUB -q short-serial
 #BSUB -We 8:00
 #BSUB -W 16:00
-#BSUB -R "rusage[mem=32000]"
-#BSUB -M 32000
+#BSUB -R "rusage[mem=18000]"
+#BSUB -M 18000
 #BSUB -cwd $jobWorkingDir
 #BSUB -o $jobWorkingDir/%J.out
 #BSUB -e $jobWorkingDir/%J.err
