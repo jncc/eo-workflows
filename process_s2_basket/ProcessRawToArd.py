@@ -85,6 +85,8 @@ class ProcessRawToArd(luigi.Task):
                         with open(testFilepath, "w") as testFile:
                             testFile.write("TEST")
 
+        expectedProducts["outputDir"] = prepareArdProcessing["tempOutDir"]
+
         with self.output().open('w') as o:
             json.dump(expectedProducts, o, indent=4)
 
