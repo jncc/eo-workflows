@@ -1,0 +1,11 @@
+# Run pre-ARCSI processing tasks
+#BSUB -q short-serial
+#BSUB -We 1:00
+#BSUB -W 4:00
+#BSUB -R "rusage[mem=16000]"
+#BSUB -M 16000
+#BSUB -cwd $jobWorkingDir
+#BSUB -o $jobWorkingDir/%J.out
+#BSUB -e $jobWorkingDir/%J.err
+
+/apps/singularity/bin/singularity exec --bind $workingMount:/working --bind $stateMount:/state --bind $inputMount:/input --bind $staticMount:/static --bind $outputMount:/output $s2ArdContainer /app/exec.sh PrepareArdProcessing --dem=$dem $outWktArg --local-scheduler

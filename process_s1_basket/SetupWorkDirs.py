@@ -4,45 +4,47 @@ import os
 import glob
 import workflow_common.common as wc
 import json
-from workflow_common.RunJob import RunJob
+from process_s1_basket.GetInputs import GetInputs
+from process_s1_basket.SetupWorkDir import SetupWorkDir
+from luigi.util import requires
 from os.path import join
 
 log = logging.getLogger('luigi-interface')
 
-class ProcessBasket(luigi.Task):
+@requires(GetInputs)
+class SetupWorkDirs(luigi.Task):
     paths = luigi.DictParameter()
     spatialConfig = luigi.DictParameter()
-    testProcessing = luigi.BoolParameter(default = False)
 
     def run(self):
-        basketDir = self.paths["basketDir"]
+        getInputs = {}
+        with self.input().open('r') as getInputsInfo:
+            getInputs = json.load(getInputsInfo)
 
         tasks = []
-        for inputFile in glob.glob(os.path.join(basketDir, "S1*")):
-            task = RunJob(
+        for inputFile in getInputs["inputFiles"]:
+            task = SetupWorkDir(
                 inputPath = inputFile,
                 paths = self.paths,
                 spatialConfig = self.spatialConfig,
-                removeSourceFile = True,
-                testProcessing = self.testProcessing
+                removeSourceFile = True
             )
 
             tasks.append(task)
         yield tasks
 
         outputFile = {
-            "basket": basketDir,
-            "submittedProducts": []
+            "productSetups": []
         }
 
         for task in tasks:
             with task.output().open('r') as taskOutput:
-                submittedProduct = json.load(taskOutput)
-                outputFile["submittedProducts"].append(submittedProduct)
+                productSetup = json.load(taskOutput)
+                outputFile["productSetups"].append(productSetup)
 
         with self.output().open("w") as outFile:
             outFile.write(wc.getFormattedJson(outputFile))
 
     def output(self):
         outputFolder = self.paths["stateDir"]
-        return wc.getLocalStateTarget(outputFolder, "ProcessBasket.json")
+        return wc.getLocalStateTarget(outputFolder, "SetupWorkDirs.json")
