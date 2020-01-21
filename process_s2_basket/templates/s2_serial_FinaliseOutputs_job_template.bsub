@@ -1,0 +1,10 @@
+# Run workflow serially
+#BSUB -q long-serial
+#BSUB -W $maxRunTime
+#BSUB -R "rusage[mem=32000]"
+#BSUB -M 32000
+#BSUB -cwd $jobWorkingDir
+#BSUB -o $jobWorkingDir/%J.out
+#BSUB -e $jobWorkingDir/%J.err
+
+/apps/singularity/bin/singularity exec --bind $workingMount:/working --bind $stateMount:/state --bind $inputMount:/input --bind $staticMount:/static --bind $outputMount:/output $s2ArdContainer /app/exec.sh FinaliseOutputs --dem=$dem $arcsiReprojection --metadataConfigFile=$metadataConfigFile --metadataTemplate=$metadataTemplate --local-scheduler
