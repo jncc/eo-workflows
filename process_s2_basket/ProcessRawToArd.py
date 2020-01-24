@@ -30,38 +30,36 @@ class ProcessRawToArd(luigi.Task):
         expectedProducts = prepareArdProcessing["expectedProducts"]
         arcsiMpiRunScriptPath = os.path.join(self.workingMount, "run_arcsimpi.sh")
 
-        if not os.path.exists(arcsiMpiRunScriptPath):
-            a = "mpirun.lotus {}/singularity exec --bind {}:/working --bind {}:/state --bind {}:/input --bind {}:/static --bind {}:/opt/platform_mpi {}" \
-                .format(
-                    self.singularityDir,
-                    self.workingMount,
-                    self.stateMount,
-                    self.inputMount,
-                    self.staticMount,
-                    self.platformMpiMount,
-                    self.singularityImgPath
-                )
-            b = "arcsimpi.py -s sen2 --stats -f KEA --fullimgouts -p RAD SHARP SATURATE CLOUDS TOPOSHADOW STDSREF DOSAOTSGL METADATA"
-            c = "-k clouds.kea meta.json sat.kea toposhad.kea valid.kea stdsref.kea --interpresamp near --interp cubic"
-            d = "-t /tmp -o {} --dem {} -i {}" \
-                .format(
-                    prepareArdProcessing["tempOutDir"],
-                    prepareArdProcessing["demFilePath"],
-                    prepareArdProcessing["fileListPath"]
-                )
+        a = "mpirun.lotus {}/singularity exec --bind {}:/working --bind {}:/input --bind {}:/static --bind {}:/opt/platform_mpi {}" \
+            .format(
+                self.singularityDir,
+                self.workingMount,
+                self.inputMount,
+                self.staticMount,
+                self.platformMpiMount,
+                self.singularityImgPath
+            )
+        b = "arcsimpi.py -s sen2 --stats -f KEA --fullimgouts -p RAD SHARP SATURATE CLOUDS TOPOSHADOW STDSREF DOSAOTSGL METADATA"
+        c = "-k clouds.kea meta.json sat.kea toposhad.kea valid.kea stdsref.kea --interpresamp near --interp cubic"
+        d = "-t /working/tmp -o {} --dem {} -i {}" \
+            .format(
+                prepareArdProcessing["tempOutDir"],
+                prepareArdProcessing["demFilePath"],
+                prepareArdProcessing["fileListPath"]
+            )
 
-            cmd = "{} {} {} {}".format(a, b, c, d)
+        cmd = "{} {} {} {}".format(a, b, c, d)
 
-            if self.arcsiReprojection:
-                cmd = cmd + " --outwkt {} --projabbv {}".format(prepareArdProcessing["projectionWktPath"], self.projAbbv)
-            
-            with open(arcsiMpiRunScriptPath, 'w') as arcsiMpiRunFile:
-                arcsiMpiRunFile.write(cmd)
+        if self.arcsiReprojection:
+            cmd = cmd + " --outwkt {} --projabbv {}".format(prepareArdProcessing["projectionWktPath"], self.projAbbv)
+        
+        with open(arcsiMpiRunScriptPath, 'w') as arcsiMpiRunFile:
+            arcsiMpiRunFile.write(cmd)
 
-            st = os.stat(arcsiMpiRunScriptPath)
-            os.chmod(arcsiMpiRunScriptPath, st.st_mode | 0o110 )
+        st = os.stat(arcsiMpiRunScriptPath)
+        os.chmod(arcsiMpiRunScriptPath, st.st_mode | 0o110 )
 
-            log.info("Created run_arcsimpi.sh with command " + cmd)
+        log.info("Created run_arcsimpi.sh with command " + cmd)
 
         if not self.testProcessing:
             try:
@@ -77,7 +75,7 @@ class ProcessRawToArd(luigi.Task):
             if not os.path.exists(prepareArdProcessing["tempOutDir"]):
                 os.mkdir(prepareArdProcessing["tempOutDir"])
 
-            for expectedProduct in expectedProducts:
+            for expectedProduct in expectedProducts["products"]:
                 for filePattern in expectedProduct["files"]:
                     testFilename = filePattern.replace("*", "TEST")
                     testFilepath = os.path.join(prepareArdProcessing["tempOutDir"], testFilename)

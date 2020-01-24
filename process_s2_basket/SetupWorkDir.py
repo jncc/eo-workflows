@@ -33,11 +33,16 @@ class SetupWorkDir(luigi.Task):
         if not os.path.exists(stateFileRoot):
             os.makedirs(stateFileRoot)
 
+        localTmpDir = os.path.join(workingFileRoot, "tmp")
+        if not os.path.exists(localTmpDir):
+            os.makedirs(localTmpDir)
+
         outputFile = {
             "swathDir": self.swathDir,
             "workspaceRoot": workspaceRoot,
             "workingFileRoot": workingFileRoot,
             "stateFileRoot": stateFileRoot,
+            "localTmpDir": localTmpDir,
             "demFilename": self.demFilename,
             "arcsiReprojection": self.arcsiReprojection,
             "outWktFilename": self.outWktFilename,
