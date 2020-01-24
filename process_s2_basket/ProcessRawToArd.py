@@ -28,39 +28,40 @@ class ProcessRawToArd(luigi.Task):
             prepareArdProcessing = json.load(prepareArdProcessingInfo)
 
         expectedProducts = prepareArdProcessing["expectedProducts"]
-        
-        a = "mpirun.lotus {}/singularity exec --bind {}:/working --bind {}:/state --bind {}:/input --bind {}:/static --bind {}:/opt/platform_mpi {}" \
-            .format(
-                self.singularityDir,
-                self.workingMount,
-                self.stateMount,
-                self.inputMount,
-                self.staticMount,
-                self.platformMpiMount,
-                self.singularityImgPath
-            )
-        b = "arcsimpi.py -s sen2 --stats -f KEA --fullimgouts -p RAD SHARP SATURATE CLOUDS TOPOSHADOW STDSREF DOSAOTSGL METADATA"
-        c = "-k clouds.kea meta.json sat.kea toposhad.kea valid.kea stdsref.kea --interpresamp near --interp cubic"
-        d = "-t /tmp -o {} --dem {} -i {}" \
-            .format(
-                prepareArdProcessing["tempOutDir"],
-                prepareArdProcessing["demFilePath"],
-                prepareArdProcessing["fileListPath"]
-            )
-
-        cmd = "{} {} {} {}".format(a, b, c, d)
-
-        if self.arcsiReprojection:
-            cmd = cmd + " --outwkt {} --projabbv {}".format(prepareArdProcessing["projectionWktPath"], self.projAbbv)
-
         arcsiMpiRunScriptPath = os.path.join(self.workingMount, "run_arcsimpi.sh")
-        with open(arcsiMpiRunScriptPath, 'w') as arcsiMpiRunFile:
-            arcsiMpiRunFile.write(cmd)
 
-        st = os.stat(arcsiMpiRunScriptPath)
-        os.chmod(arcsiMpiRunScriptPath, st.st_mode | 0o110 )
+        if not os.path.exists(arcsiMpiRunScriptPath):
+            a = "mpirun.lotus {}/singularity exec --bind {}:/working --bind {}:/state --bind {}:/input --bind {}:/static --bind {}:/opt/platform_mpi {}" \
+                .format(
+                    self.singularityDir,
+                    self.workingMount,
+                    self.stateMount,
+                    self.inputMount,
+                    self.staticMount,
+                    self.platformMpiMount,
+                    self.singularityImgPath
+                )
+            b = "arcsimpi.py -s sen2 --stats -f KEA --fullimgouts -p RAD SHARP SATURATE CLOUDS TOPOSHADOW STDSREF DOSAOTSGL METADATA"
+            c = "-k clouds.kea meta.json sat.kea toposhad.kea valid.kea stdsref.kea --interpresamp near --interp cubic"
+            d = "-t /tmp -o {} --dem {} -i {}" \
+                .format(
+                    prepareArdProcessing["tempOutDir"],
+                    prepareArdProcessing["demFilePath"],
+                    prepareArdProcessing["fileListPath"]
+                )
 
-        log.info("Created run_arcsimpi.sh with command " + cmd)
+            cmd = "{} {} {} {}".format(a, b, c, d)
+
+            if self.arcsiReprojection:
+                cmd = cmd + " --outwkt {} --projabbv {}".format(prepareArdProcessing["projectionWktPath"], self.projAbbv)
+            
+            with open(arcsiMpiRunScriptPath, 'w') as arcsiMpiRunFile:
+                arcsiMpiRunFile.write(cmd)
+
+            st = os.stat(arcsiMpiRunScriptPath)
+            os.chmod(arcsiMpiRunScriptPath, st.st_mode | 0o110 )
+
+            log.info("Created run_arcsimpi.sh with command " + cmd)
 
         if not self.testProcessing:
             try:
