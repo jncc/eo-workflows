@@ -28,12 +28,12 @@ class ProcessRawToArd(luigi.Task):
             prepareArdProcessing = json.load(prepareArdProcessingInfo)
 
         expectedProducts = prepareArdProcessing["expectedProducts"]
-        
-        a = "mpirun.lotus {}/singularity exec --bind {}:/working --bind {}:/state --bind {}:/input --bind {}:/static --bind {}:/opt/platform_mpi {}" \
+        arcsiMpiRunScriptPath = os.path.join(self.workingMount, "run_arcsimpi.sh")
+
+        a = "mpirun.lotus {}/singularity exec --bind {}:/working --bind {}:/input --bind {}:/static --bind {}:/opt/platform_mpi {}" \
             .format(
                 self.singularityDir,
                 self.workingMount,
-                self.stateMount,
                 self.inputMount,
                 self.staticMount,
                 self.platformMpiMount,
@@ -41,7 +41,7 @@ class ProcessRawToArd(luigi.Task):
             )
         b = "arcsimpi.py -s sen2 --stats -f KEA --fullimgouts -p RAD SHARP SATURATE CLOUDS TOPOSHADOW STDSREF DOSAOTSGL METADATA"
         c = "-k clouds.kea meta.json sat.kea toposhad.kea valid.kea stdsref.kea --interpresamp near --interp cubic"
-        d = "-t /tmp -o {} --dem {} -i {}" \
+        d = "-t /working/tmp -o {} --dem {} -i {}" \
             .format(
                 prepareArdProcessing["tempOutDir"],
                 prepareArdProcessing["demFilePath"],
@@ -52,8 +52,7 @@ class ProcessRawToArd(luigi.Task):
 
         if self.arcsiReprojection:
             cmd = cmd + " --outwkt {} --projabbv {}".format(prepareArdProcessing["projectionWktPath"], self.projAbbv)
-
-        arcsiMpiRunScriptPath = os.path.join(self.workingMount, "run_arcsimpi.sh")
+        
         with open(arcsiMpiRunScriptPath, 'w') as arcsiMpiRunFile:
             arcsiMpiRunFile.write(cmd)
 
@@ -76,7 +75,7 @@ class ProcessRawToArd(luigi.Task):
             if not os.path.exists(prepareArdProcessing["tempOutDir"]):
                 os.mkdir(prepareArdProcessing["tempOutDir"])
 
-            for expectedProduct in expectedProducts:
+            for expectedProduct in expectedProducts["products"]:
                 for filePattern in expectedProduct["files"]:
                     testFilename = filePattern.replace("*", "TEST")
                     testFilepath = os.path.join(prepareArdProcessing["tempOutDir"], testFilename)
