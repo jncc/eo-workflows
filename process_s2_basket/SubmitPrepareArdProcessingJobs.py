@@ -18,6 +18,7 @@ class SubmitPrepareArdProcessingJobs(luigi.Task):
     demFilename = luigi.Parameter()
     outWktFilename = luigi.Parameter()
     arcsiReprojection = luigi.BoolParameter()
+    arcsiCmdTemplate = luigi.Parameter()
     testProcessing = luigi.BoolParameter(default = False)
 
     def run(self):
@@ -45,7 +46,8 @@ class SubmitPrepareArdProcessingJobs(luigi.Task):
                 "outputMount" : self.paths["outputDir"],
                 "s2ArdContainer": self.paths["singularityImgPath"],
                 "dem": self.demFilename,
-                "outWktArg" : outWktArg
+                "outWktArg" : outWktArg,
+                "arcsiCmdTemplate" : self.arcsiCmdTemplate
             }
 
             bsub = bsubTemplate.substitute(bsubParams)

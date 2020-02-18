@@ -20,6 +20,7 @@ class ProcessS2BasketSerial(luigi.Task):
     outWktFilename = luigi.Parameter()
     metadataConfigFile = luigi.Parameter()
     metadataTemplate = luigi.Parameter()
+    arcsiCmdTemplate = luigi.Parameter()
     maxCogProcesses = luigi.IntParameter()
     testProcessing = luigi.BoolParameter(default = False)
 
@@ -60,7 +61,8 @@ class ProcessS2BasketSerial(luigi.Task):
                 "dem": self.demFilename,
                 "arcsiReprojection" : arcsiReprojection,
                 "metadataConfigFile": self.metadataConfigFile,
-                "metadataTemplate": self.metadataTemplate
+                "metadataTemplate": self.metadataTemplate,
+                "arcsiCmdTemplate": self.arcsiCmdTemplate
             }
 
             bsub = bsubTemplate.substitute(bsubParams)

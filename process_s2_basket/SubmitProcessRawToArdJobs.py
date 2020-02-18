@@ -65,7 +65,6 @@ class SubmitProcessRawToArdJobs(luigi.Task):
                 "platformMpiMount" : self.paths["platformMpiDir"],
                 "singularityDir": self.paths["singularityDir"],
                 "arcsiContainer": self.paths["arcsiMpiBaseImg"],
-                "arcsiReprojection": arcsiReprojection,
                 "testProcessing": testProcessing
             }
 

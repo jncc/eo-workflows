@@ -7,5 +7,6 @@
 #BSUB -cwd $jobWorkingDir
 #BSUB -o $jobWorkingDir/%J.out
 #BSUB -e $jobWorkingDir/%J.err
+#BSUB -P defra_eo_jncc_s2_ard
 
-/apps/singularity/bin/singularity exec --bind $workingMount:/working --bind $stateMount:/state --bind $inputMount:/input --bind $staticMount:/static --bind $outputMount:/output $s2ArdContainer /app/exec.sh PrepareArdProcessing --dem=$dem $outWktArg --local-scheduler
+/apps/singularity/bin/singularity exec --bind $workingMount:/working --bind $stateMount:/state --bind $inputMount:/input --bind $staticMount:/static --bind $outputMount:/output $s2ArdContainer /app/exec.sh PrepareArdProcessing --dem=$dem $outWktArg --arcsiCmdTemplate=$arcsiCmdTemplate --local-scheduler
