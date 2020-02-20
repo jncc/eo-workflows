@@ -71,6 +71,9 @@ class ProcessRawToArd(luigi.Task):
                             
         expectedProducts["outputDir"] = prepareArdProcessing["tempOutDir"]
 
+        with self.output().open('w') as o:
+            json.dump(expectedProducts, o, indent=4)
+
     def output(self):
         outFile = os.path.join(self.stateMount, 'ProcessRawToArd.json')
         return LocalTarget(outFile)
