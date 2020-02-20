@@ -17,6 +17,7 @@ class SubmitPrepareArdProcessingJobs(luigi.Task):
     paths = luigi.DictParameter()
     demFilename = luigi.Parameter()
     outWktFilename = luigi.Parameter()
+    projAbbv = luigi.Parameter()
     arcsiReprojection = luigi.BoolParameter()
     arcsiCmdTemplate = luigi.Parameter()
     testProcessing = luigi.BoolParameter(default = False)
@@ -36,7 +37,7 @@ class SubmitPrepareArdProcessingJobs(luigi.Task):
             productName = wc.getProductNameFromPath(swathSetup["swathDir"])
 
             outWktArg = "--outWkt={}".format(self.outWktFilename) if self.arcsiReprojection else ""
-            projAbbvArg = "--projAbbv={}".format(self.projAbbvArg) if self.arcsiReprojection else ""
+            projAbbvArg = "--projAbbv={}".format(self.projAbbv) if self.arcsiReprojection else ""
 
             bsubParams = {
                 "jobWorkingDir" : swathSetup["workspaceRoot"],
