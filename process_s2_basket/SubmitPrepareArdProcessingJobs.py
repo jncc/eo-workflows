@@ -36,6 +36,7 @@ class SubmitPrepareArdProcessingJobs(luigi.Task):
             productName = wc.getProductNameFromPath(swathSetup["swathDir"])
 
             outWktArg = "--outWkt={}".format(self.outWktFilename) if self.arcsiReprojection else ""
+            projAbbvArg = "--projAbbv={}".format(self.projAbbvArg) if self.arcsiReprojection else ""
 
             bsubParams = {
                 "jobWorkingDir" : swathSetup["workspaceRoot"],
@@ -47,6 +48,7 @@ class SubmitPrepareArdProcessingJobs(luigi.Task):
                 "s2ArdContainer": self.paths["singularityImgPath"],
                 "dem": self.demFilename,
                 "outWktArg" : outWktArg,
+                "projAbbvArg" : projAbbvArg,
                 "arcsiCmdTemplate" : self.arcsiCmdTemplate
             }
 

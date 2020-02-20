@@ -5,8 +5,8 @@
 #BSUB -We 6:00
 #BSUB -W 12:00
 #BSUB -cwd $jobWorkingDir
-#BSUB -o $jobWorkingDir/%J.out
-#BSUB -e $jobWorkingDir/%J.err
+#BSUB -o $jobWorkingDir/%J_ProcessRawToArd.out
+#BSUB -e $jobWorkingDir/%J_ProcessRawToArd.err
 #BSUB -R "select[hname!=host283]"
 #BSUB -P defra_eo_jncc_s2_ard
 
