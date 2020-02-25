@@ -13,13 +13,11 @@ log = logging.getLogger("luigi-interface")
 class ProcessRawToArd(luigi.Task):
     singularityDir = luigi.Parameter()
     singularityImgPath = luigi.Parameter()
-    arcsiReprojection = luigi.BoolParameter(default = False)
     workingMount = luigi.Parameter()
     stateMount = luigi.Parameter()
     inputMount = luigi.Parameter()
     staticMount = luigi.Parameter()
     platformMpiMount = luigi.Parameter()
-    projAbbv = luigi.Parameter()
     testProcessing = luigi.BoolParameter(default = False)
 
     def run(self):
@@ -39,20 +37,10 @@ class ProcessRawToArd(luigi.Task):
                 self.platformMpiMount,
                 self.singularityImgPath
             )
-        b = "arcsimpi.py -s sen2 --stats -f KEA --fullimgouts -p RAD SHARP SATURATE CLOUDS TOPOSHADOW STDSREF DOSAOTSGL METADATA"
-        c = "-k clouds.kea meta.json sat.kea toposhad.kea valid.kea stdsref.kea --interpresamp near --interp cubic"
-        d = "-t /working/tmp -o {} --dem {} -i {}" \
-            .format(
-                prepareArdProcessing["tempOutDir"],
-                prepareArdProcessing["demFilePath"],
-                prepareArdProcessing["fileListPath"]
-            )
+        b = prepareArdProcessing["arcsiCmd"]
 
-        cmd = "{} {} {} {}".format(a, b, c, d)
+        cmd = "{} {}".format(a, b)
 
-        if self.arcsiReprojection:
-            cmd = cmd + " --outwkt {} --projabbv {}".format(prepareArdProcessing["projectionWktPath"], self.projAbbv)
-        
         with open(arcsiMpiRunScriptPath, 'w') as arcsiMpiRunFile:
             arcsiMpiRunFile.write(cmd)
 
@@ -70,11 +58,8 @@ class ProcessRawToArd(luigi.Task):
                 log.error(errStr)
                 raise RuntimeError(errStr)
         else:
-            #TODO: this needs refactoring to an external command that creats mock files
-            log.info("Generating mock output files")
-            if not os.path.exists(prepareArdProcessing["tempOutDir"]):
-                os.mkdir(prepareArdProcessing["tempOutDir"])
 
+            log.info("Generating mock output files")
             for expectedProduct in expectedProducts["products"]:
                 for filePattern in expectedProduct["files"]:
                     testFilename = filePattern.replace("*", "TEST")
@@ -83,7 +68,7 @@ class ProcessRawToArd(luigi.Task):
                     if not os.path.exists(testFilepath):
                         with open(testFilepath, "w") as testFile:
                             testFile.write("TEST")
-
+                            
         expectedProducts["outputDir"] = prepareArdProcessing["tempOutDir"]
 
         with self.output().open('w') as o:

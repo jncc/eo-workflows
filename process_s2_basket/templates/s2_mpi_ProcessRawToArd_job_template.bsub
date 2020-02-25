@@ -5,9 +5,10 @@
 #BSUB -We 6:00
 #BSUB -W 12:00
 #BSUB -cwd $jobWorkingDir
-#BSUB -o $jobWorkingDir/%J.out
-#BSUB -e $jobWorkingDir/%J.err
+#BSUB -o $jobWorkingDir/%J_ProcessRawToArd.out
+#BSUB -e $jobWorkingDir/%J_ProcessRawToArd.err
 #BSUB -R "select[hname!=host283]"
+#BSUB -P defra_eo_jncc_s2_ard
 
 source /gws/smf/j04/defra_eo/eo-workflows/eo-workflows-venv/bin/activate
-LUIGI_CONFIG_PATH='/gws/smf/j04/defra_eo/eo-workflows/luigi.cfg' PYTHONPATH='/gws/smf/j04/defra_eo/eo-workflows' luigi --module process_s2_basket ProcessRawToArd --singularityDir $singularityDir --singularityImgPath $arcsiContainer --workingMount $workingMount --stateMount $stateMount --inputMount $inputMount --staticMount $staticMount --platformMpiMount $platformMpiMount $arcsiReprojection $testProcessing --local-scheduler
+LUIGI_CONFIG_PATH='/gws/smf/j04/defra_eo/eo-workflows/luigi.cfg' PYTHONPATH='/gws/smf/j04/defra_eo/eo-workflows' luigi --module process_s2_basket ProcessRawToArd --singularityDir $singularityDir --singularityImgPath $arcsiContainer --workingMount $workingMount --stateMount $stateMount --inputMount $inputMount --staticMount $staticMount --platformMpiMount $platformMpiMount $testProcessing --local-scheduler

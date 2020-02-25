@@ -16,8 +16,6 @@ log = logging.getLogger('luigi-interface')
 @requires(GetInputSwaths, SetupWorkDirs, SubmitPrepareArdProcessingJobs)
 class SubmitProcessRawToArdJobs(luigi.Task):
     paths = luigi.DictParameter()
-    arcsiReprojection = luigi.BoolParameter(default = False)
-    projAbbv = luigi.Parameter()
     testProcessing = luigi.BoolParameter(default = False)
 
     def run(self):
@@ -51,7 +49,6 @@ class SubmitProcessRawToArdJobs(luigi.Task):
                 if submittedSwath["productId"] == productName:
                     upstreamJobId = submittedSwath["jobId"]
 
-            arcsiReprojection = "--arcsiReprojection --projAbbv {}".format(self.projAbbv) if self.arcsiReprojection else ""
             testProcessing = "--testProcessing" if self.testProcessing else ""
 
             bsubParams = {
@@ -65,7 +62,6 @@ class SubmitProcessRawToArdJobs(luigi.Task):
                 "platformMpiMount" : self.paths["platformMpiDir"],
                 "singularityDir": self.paths["singularityDir"],
                 "arcsiContainer": self.paths["arcsiMpiBaseImg"],
-                "arcsiReprojection": arcsiReprojection,
                 "testProcessing": testProcessing
             }
 

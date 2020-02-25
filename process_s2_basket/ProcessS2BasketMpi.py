@@ -61,6 +61,7 @@ class ProcessS2BasketMpi(luigi.Task):
                 "dem": self.demFilename,
                 "metadataConfigFile": self.metadataConfigFile,
                 "metadataTemplate": self.metadataTemplate,
+                "arcsiCmdTemplate": self.arcsiCmdTemplate,
                 "maxCogProcesses": self.maxCogProcesses
             }
 

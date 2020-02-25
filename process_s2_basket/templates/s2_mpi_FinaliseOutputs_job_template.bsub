@@ -3,10 +3,9 @@
 #BSUB -q short-serial
 #BSUB -We 3:00
 #BSUB -W 6:00
-#BSUB -R "rusage[mem=16000]"
-#BSUB -M 16000
 #BSUB -cwd $jobWorkingDir
-#BSUB -o $jobWorkingDir/%J.out
-#BSUB -e $jobWorkingDir/%J.err
+#BSUB -o $jobWorkingDir/%J_FinaliseOutputs.out
+#BSUB -e $jobWorkingDir/%J_FinaliseOutputs.err
+#BSUB -P defra_eo_jncc_s2_ard
 
-/apps/singularity/bin/singularity exec --bind $workingMount:/working --bind $stateMount:/state --bind $inputMount:/input --bind $staticMount:/static --bind $outputMount:/output $s2ArdContainer /app/exec.sh FinaliseOutputs --dem=$dem $arcsiReprojection --mpi --metadataConfigFile=$metadataConfigFile --metadataTemplate=$metadataTemplate --maxCogProcesses=$maxCogProcesses --local-scheduler
+/apps/singularity/bin/singularity exec --bind $workingMount:/working --bind $stateMount:/state --bind $inputMount:/input --bind $staticMount:/static --bind $outputMount:/output $s2ArdContainer /app/exec.sh FinaliseOutputs --dem=$dem $arcsiReprojection --metadataConfigFile=$metadataConfigFile --metadataTemplate=$metadataTemplate --arcsiCmdTemplate=$arcsiCmdTemplate --maxCogProcesses=$maxCogProcesses --local-scheduler

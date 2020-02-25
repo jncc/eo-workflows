@@ -17,7 +17,9 @@ class SubmitPrepareArdProcessingJobs(luigi.Task):
     paths = luigi.DictParameter()
     demFilename = luigi.Parameter()
     outWktFilename = luigi.Parameter()
+    projAbbv = luigi.Parameter()
     arcsiReprojection = luigi.BoolParameter()
+    arcsiCmdTemplate = luigi.Parameter()
     testProcessing = luigi.BoolParameter(default = False)
 
     def run(self):
@@ -35,6 +37,7 @@ class SubmitPrepareArdProcessingJobs(luigi.Task):
             productName = wc.getProductNameFromPath(swathSetup["swathDir"])
 
             outWktArg = "--outWkt={}".format(self.outWktFilename) if self.arcsiReprojection else ""
+            projAbbvArg = "--projAbbv={}".format(self.projAbbv) if self.arcsiReprojection else ""
 
             bsubParams = {
                 "jobWorkingDir" : swathSetup["workspaceRoot"],
@@ -45,7 +48,9 @@ class SubmitPrepareArdProcessingJobs(luigi.Task):
                 "outputMount" : self.paths["outputDir"],
                 "s2ArdContainer": self.paths["singularityImgPath"],
                 "dem": self.demFilename,
-                "outWktArg" : outWktArg
+                "outWktArg" : outWktArg,
+                "projAbbvArg" : projAbbvArg,
+                "arcsiCmdTemplate" : self.arcsiCmdTemplate
             }
 
             bsub = bsubTemplate.substitute(bsubParams)
