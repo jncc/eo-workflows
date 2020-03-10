@@ -20,9 +20,10 @@ class ProcessS2BasketMpi(luigi.Task):
     projAbbv = luigi.Parameter()
     arcsiReprojection = luigi.BoolParameter()
     metadataConfigFile = luigi.Parameter()
-    metadataTemplate = luigi.Parameter()
+    metadataTemplate = luigi.OptionalParameter(default=None)
     maxCogProcesses = luigi.IntParameter()
     testProcessing = luigi.BoolParameter(default = False)
+    arcsiCmdTemplate = luigi.OptionalParameter(default=None)
 
     def run(self):
         setupWorkDirs = {}
@@ -48,6 +49,14 @@ class ProcessS2BasketMpi(luigi.Task):
 
             arcsiReprojection = "--outWkt={} --projAbbv={}".format(self.outWktFilename, self.projAbbv) if self.arcsiReprojection else ""
 
+            metadataTemplate = ""
+            if self.metadataTemplate is not None:
+                metadataTemplate = "--metadataTemplate={}".format(self.metadataTemplate)
+
+            arcsiCmdTemplate = ""
+            if self.arcsiCmdTemplate is not None:
+                arcsiCmdTemplate = "--arcsiCmdTemplate={}".format(self.arcsiCmdTemplate)
+
             bsubParams = {
                 "upstreamJobId": upstreamJobId,
                 "jobWorkingDir" : swathSetup["workspaceRoot"],
@@ -60,8 +69,8 @@ class ProcessS2BasketMpi(luigi.Task):
                 "arcsiReprojection": arcsiReprojection,
                 "dem": self.demFilename,
                 "metadataConfigFile": self.metadataConfigFile,
-                "metadataTemplate": self.metadataTemplate,
-                "arcsiCmdTemplate": self.arcsiCmdTemplate,
+                "metadataTemplate": metadataTemplate,
+                "arcsiCmdTemplate": arcsiCmdTemplate,
                 "maxCogProcesses": self.maxCogProcesses
             }
 

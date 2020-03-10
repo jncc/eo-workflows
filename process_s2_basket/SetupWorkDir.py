@@ -16,7 +16,7 @@ class SetupWorkDir(luigi.Task):
     outWktFilename = luigi.Parameter()
     projAbbv = luigi.Parameter()
     metadataConfigFile = luigi.Parameter()
-    metadataTemplate = luigi.Parameter()
+    metadataTemplate = luigi.OptionalParameter(default=None)
     maxCogProcesses = luigi.IntParameter()
 
     def run(self):

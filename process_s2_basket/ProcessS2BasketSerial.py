@@ -19,8 +19,8 @@ class ProcessS2BasketSerial(luigi.Task):
     demFilename = luigi.Parameter()
     outWktFilename = luigi.Parameter()
     metadataConfigFile = luigi.Parameter()
-    metadataTemplate = luigi.Parameter()
-    arcsiCmdTemplate = luigi.Parameter()
+    metadataTemplate = luigi.OptionalParameter(default=None)
+    arcsiCmdTemplate = luigi.OptionalParameter(default=None)
     maxCogProcesses = luigi.IntParameter()
     testProcessing = luigi.BoolParameter(default = False)
 
@@ -49,6 +49,14 @@ class ProcessS2BasketSerial(luigi.Task):
 
             arcsiReprojection = "--outWkt={} --projAbbv={}".format(self.outWktFilename, self.projAbbv) if self.arcsiReprojection else ""
 
+            metadataTemplate = ""
+            if self.metadataTemplate is not None:
+                metadataTemplate = "--metadataTemplate={}".format(self.metadataTemplate)
+            
+            arcsiCmdTemplate = ""
+            if self.arcsiCmdTemplate is not None:
+                arcsiCmdTemplate = "--arcsiCmdTemplate={}".format(self.arcsiCmdTemplate)
+
             bsubParams = {
                 "maxRunTime": noOfGranules * self.hoursPerGranule,
                 "jobWorkingDir" : swathSetup["workspaceRoot"],
@@ -61,8 +69,8 @@ class ProcessS2BasketSerial(luigi.Task):
                 "dem": self.demFilename,
                 "arcsiReprojection" : arcsiReprojection,
                 "metadataConfigFile": self.metadataConfigFile,
-                "metadataTemplate": self.metadataTemplate,
-                "arcsiCmdTemplate": self.arcsiCmdTemplate
+                "metadataTemplate": metadataTemplate,
+                "arcsiCmdTemplate": arcsiCmdTemplate
             }
 
             bsub = bsubTemplate.substitute(bsubParams)
