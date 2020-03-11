@@ -57,8 +57,7 @@ arcsiReprojection = False
 outWktFilename = BritishNationalGrid.wkt
 projAbbv = osgb
 metadataConfigFile = metadata-config.json
-metadataTemplate = /static/s2_metadata_template.xml
-arcsiCmdTemplate = /static/arcsimpi_cmd_template.txt
+arcsiCmdTemplate = /app/workflows/process_s2_swath/templates/arcsimpi_cmd_template.txt
 maxCogProcesses = 4
 
 [ProcessS2BasketSerial]
@@ -78,6 +77,4 @@ arcsiReprojection = False
 outWktFilename = BritishNationalGrid.wkt
 projAbbv = osgb
 metadataConfigFile = metadata-config.json
-metadataTemplate = /static/s2_metadata_template.xml
-arcsiCmdTemplate = /static/arcsi_cmd_template.txt
 maxCogProcesses = 4

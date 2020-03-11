@@ -7,7 +7,7 @@ from luigi import LocalTarget
 
 log = logging.getLogger('luigi-interface')
 
-class PrepareArdProcessing(luigi.Task):
+class PrepareArdProcessing(luigi.ExternalTask):
     stateMount = luigi.Parameter()
 
     def output(self):
