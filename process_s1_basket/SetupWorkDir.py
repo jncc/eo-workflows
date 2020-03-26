@@ -18,7 +18,7 @@ class SetupWorkDir(luigi.Task):
     def run(self):
         log.info("Setting up directories for {}".format(self.inputPath))
 
-        locationName = spatialConfig["metadataPlaceName"].replace(' ','-')
+        locationName = self.spatialConfig["metadataPlaceName"].replace(' ','-')
         productName = wc.getProductNameFromPath(self.inputPath)
         workspaceRoot = os.path.join(self.paths["processingDir"], locationName, productName)
         
