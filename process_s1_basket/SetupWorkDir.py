@@ -4,6 +4,7 @@ import os
 import glob
 import workflow_common.common as wc
 import json
+import re
 from process_s1_basket.CreateRunScript import CreateRunScript
 from os.path import join
 
@@ -18,9 +19,10 @@ class SetupWorkDir(luigi.Task):
     def run(self):
         log.info("Setting up directories for {}".format(self.inputPath))
 
-        locationName = self.spatialConfig["metadataPlaceName"].replace(' ','-')
+        srs = self.spatialConfig["filenameSrs"]
+        srsSafe = re.sub("\W", '-', srs)
         productName = wc.getProductNameFromPath(self.inputPath)
-        workspaceRoot = os.path.join(self.paths["processingDir"], locationName, productName)
+        workspaceRoot = os.path.join(self.paths["processingDir"], srsSafe, productName)
         
         workingFileRoot = os.path.join(workspaceRoot, "working")
         if not os.path.exists(workingFileRoot):
