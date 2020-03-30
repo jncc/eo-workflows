@@ -5,6 +5,8 @@ import glob
 import workflow_common.common as wc
 import json
 import pathlib
+
+from datetime import datetime
 from os.path import join
 from pathlib import Path
 
@@ -24,18 +26,22 @@ class CreateRunScript(luigi.Task):
         outputDir = self.paths["outputDir"]
         singularityDir = self.paths["singularityDir"]
         singularityImgPath = self.paths["singularityImgPath"]
+        reportDir = self.paths["reportDir"]
 
         path = Path(self.inputPath)
         inputDir = path.parent
         productName = wc.getProductNameFromPath(self.inputPath)
         removeSourceFileFlag = "--removeInputFile" if self.removeSourceFile else ""
 
-        singularityCmd = "{}/singularity exec --bind {}:/working --bind {}:/state --bind {}:/input --bind {}:/static --bind {}:/output "\
-            "{} /app/exec.sh VerifyWorkflowOutput --productName={} --memoryLimit=16 --noStateCopy --spatialConfig='{{" \
+        reportFileName = "{}-{}.csv".format(os.path.basename(self.paths["basketDir"]), datetime.now().strftime("%Y%m%d%H%M"))
+    
+        singularityCmd = "{}/singularity exec --bind {}:/report --bind {}:/working --bind {}:/state --bind {}:/input --bind {}:/static --bind {}:/output "\
+            "{} /app/exec.sh VerifyWorkflowOutput --productName={} --memoryLimit=16 --noStateCopy --reportFileName={} --dbFileName=db/s1ArdProcessing.db --spatialConfig='{{" \
             "\"snapConfigUtmProj\": \"{}\", \"snapConfigCentralMeridian\": \"{}\", \"snapConfigFalseNorthing\": \"{}\", \"snapRunArguments\": \"{}\", " \
             "\"sourceSrs\": \"{}\", \"targetSrs\": \"{}\", \"filenameDemData\": \"{}\", \"filenameSrs\": \"{}\", \"demFilename\": \"{}\", \"demTitle\":\"{}\", " \
             "\"metadataProjection\": \"{}\", \"metadataPlaceName\":\"{}\", \"metadataParentPlaceName\":\"{}\"}}' {}" \
             .format(singularityDir,
+                reportDir,
                 self.workingFileRoot,
                 self.stateFileRoot,
                 inputDir,
@@ -43,6 +49,7 @@ class CreateRunScript(luigi.Task):
                 outputDir,
                 singularityImgPath,
                 productName,
+                reportFileName,
                 self.spatialConfig["snapConfigUtmProj"],
                 self.spatialConfig["snapConfigCentralMeridian"],
                 self.spatialConfig["snapConfigFalseNorthing"],

@@ -9,7 +9,8 @@ paths = {
     "outputDir":"{{ outputDir }}",
     "singularityDir":"{{ singularityDir }}",
     "singularityImgPath":"{{ singularityImgPath }}",
-    "templatesDir":"{{ templatesDir }}"
+    "templatesDir":"{{ templatesDir }}",
+    "reportDir":"{{ reportDir }}"
     }
     
 spatialConfig = {
