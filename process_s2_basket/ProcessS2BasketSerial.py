@@ -3,6 +3,8 @@ import logging
 import os
 import workflow_common.common as wc
 import json
+
+from datetime import datetime
 from string import Template
 from workflow_common.SubmitJob import SubmitJob
 from process_s2_basket.GetInputSwaths import GetInputSwaths
@@ -35,7 +37,7 @@ class ProcessS2BasketSerial(luigi.Task):
 
         basketDir = self.paths["basketDir"]
 
-        with open(os.path.join(self.paths["templatesDir"], 's2_serial_FinaliseOutputs_job_template.bsub'), 'r') as t:
+        with open(os.path.join(self.paths["templatesDir"], 's2_serial_GenerateReport_job_template.bsub'), 'r') as t:
             bsubTemplate = Template(t.read())
 
         tasks = []
@@ -57,6 +59,8 @@ class ProcessS2BasketSerial(luigi.Task):
             if self.arcsiCmdTemplate is not None:
                 arcsiCmdTemplate = "--arcsiCmdTemplate={}".format(self.arcsiCmdTemplate)
 
+            reportFileName = "{}-{}.csv".format(os.path.basename(self.paths["basketDir"]), datetime.now().strftime("%Y%m%d%H%M"))
+
             bsubParams = {
                 "maxRunTime": noOfGranules * self.hoursPerGranule,
                 "jobWorkingDir" : swathSetup["workspaceRoot"],
@@ -70,11 +74,13 @@ class ProcessS2BasketSerial(luigi.Task):
                 "arcsiReprojection" : arcsiReprojection,
                 "metadataConfigFile": self.metadataConfigFile,
                 "metadataTemplate": metadataTemplate,
-                "arcsiCmdTemplate": arcsiCmdTemplate
+                "arcsiCmdTemplate": arcsiCmdTemplate,
+                "reportFileName": reportFileName,
+                "reportMount": self.paths["reportDir"]
             }
 
             bsub = bsubTemplate.substitute(bsubParams)
-            bsubScriptPath = os.path.join(swathSetup["workspaceRoot"], "submit_FinaliseOutputs_job_for_{}.bsub".format(productName))
+            bsubScriptPath = os.path.join(swathSetup["workspaceRoot"], "submit_GenerateReport_job_for_{}.bsub".format(productName))
 
             with open(bsubScriptPath, 'w') as bsubScriptFile:
                 bsubScriptFile.write(bsub)

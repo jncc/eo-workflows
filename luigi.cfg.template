@@ -51,7 +51,8 @@ paths = {
     "singularityImgPath":"{{ singularityImgPath }}",
     "arcsiMpiBaseImg":"{{ arcsiMpiBaseImg }}"
     "platformMpiDir":"{{ platformMpiDir }}",
-    "templatesDir":"{{ templatesDir }}"
+    "templatesDir":"{{ templatesDir }}",
+    "reportDir":"{{ reportDir }}"
     }
 
 arcsiReprojection = False
@@ -70,7 +71,8 @@ paths = {
     "outputDir":"{{ outputDir }}",
     "singularityDir":"{{ singularityDir }}",
     "singularityImgPath":"{{ singularityImgPath }}",
-    "templatesDir":"{{ templatesDir }}"
+    "templatesDir":"{{ templatesDir }}",
+    "reportDir":"{{ reportDir }}"
     }
 
 hoursPerGranule = 6
