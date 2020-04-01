@@ -9,7 +9,9 @@ paths = {
     "outputDir":"{{ outputDir }}",
     "singularityDir":"{{ singularityDir }}",
     "singularityImgPath":"{{ singularityImgPath }}",
-    "templatesDir":"{{ templatesDir }}"
+    "templatesDir":"{{ templatesDir }}",
+    "reportDir":"{{ reportDir }}",
+    "databaseDir":"{{ databaseDir }}"
     }
     
 spatialConfig = {
@@ -50,7 +52,9 @@ paths = {
     "singularityImgPath":"{{ singularityImgPath }}",
     "arcsiMpiBaseImg":"{{ arcsiMpiBaseImg }}"
     "platformMpiDir":"{{ platformMpiDir }}",
-    "templatesDir":"{{ templatesDir }}"
+    "templatesDir":"{{ templatesDir }}",
+    "reportDir":"{{ reportDir }}",
+    "databaseDir":"{{ databaseDir }}"
     }
 
 arcsiReprojection = False
@@ -69,7 +73,9 @@ paths = {
     "outputDir":"{{ outputDir }}",
     "singularityDir":"{{ singularityDir }}",
     "singularityImgPath":"{{ singularityImgPath }}",
-    "templatesDir":"{{ templatesDir }}"
+    "templatesDir":"{{ templatesDir }}",
+    "reportDir":"{{ reportDir }}",
+    "databaseDir":"{{ databaseDir }}"
     }
 
 hoursPerGranule = 6

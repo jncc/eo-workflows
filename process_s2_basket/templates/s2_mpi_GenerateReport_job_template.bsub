@@ -1,0 +1,11 @@
+# Run post-ARCSI processing tasks
+#BSUB -w 'done($upstreamJobId)'
+#BSUB -q short-serial
+#BSUB -We 3:00
+#BSUB -W 6:00
+#BSUB -cwd $jobWorkingDir
+#BSUB -o $jobWorkingDir/%J_GenerateReport.out
+#BSUB -e $jobWorkingDir/%J_GenerateReport.err
+#BSUB -P defra_eo_jncc_s2_ard
+
+/apps/singularity/bin/singularity exec --bind $reportMount:/report --bind $databaseMount:/database --bind $workingMount:/working --bind $stateMount:/state --bind $inputMount:/input --bind $staticMount:/static --bind $outputMount:/output $s2ArdContainer /app/exec.sh GenerateReport --dbFileName=db/s2ArdProcessing.db --reportFileName=$reportFileName --dem=$dem $arcsiReprojection --metadataConfigFile=$metadataConfigFile $metadataTemplate $arcsiCmdTemplate --maxCogProcesses=$maxCogProcesses --local-scheduler
