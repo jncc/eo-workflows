@@ -20,7 +20,6 @@ class ProcessS1Basket(luigi.Task):
     testProcessing = luigi.BoolParameter(default = False)
     removeSourceFile = luigi.BoolParameter()
     spatialConfig = luigi.DictParameter()
-    stateFileRoot = luigi.Parameter()
     inputPath = luigi.Parameter()
 
     def run(self):
@@ -47,7 +46,7 @@ class ProcessS1Basket(luigi.Task):
                 "reportMount": self.paths["reportDir"],
                 "databaseMount": self.paths["databaseDir"], 
                 "workingMount": productSetup["workingFileRoot"],
-                "stateMount": self.stateFileRoot,
+                "stateMount": productSetup["stateFileRoot"],
                 "inputMount" :inputDir,
                 "staticMount" :self.paths["staticDir"],
                 "outputMount": self.paths["outputDir"],
