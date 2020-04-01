@@ -20,7 +20,6 @@ class ProcessS1Basket(luigi.Task):
     testProcessing = luigi.BoolParameter(default = False)
     removeSourceFile = luigi.BoolParameter()
     spatialConfig = luigi.DictParameter()
-    inputPath = luigi.Parameter()
 
     def run(self):
         setupWorkDirs = {}
@@ -36,7 +35,7 @@ class ProcessS1Basket(luigi.Task):
         for productSetup in setupWorkDirs["productSetups"]:
             productName = wc.getProductNameFromPath(productSetup["inputPath"])
 
-            path = Path(self.inputPath)
+            path = Path(productSetup["inputPath"])
             inputDir = path.parent
             removeSourceFileFlag = "--removeInputFile" if self.removeSourceFile else ""
 
