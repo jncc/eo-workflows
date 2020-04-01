@@ -32,25 +32,11 @@ class SetupWorkDir(luigi.Task):
         if not os.path.exists(stateFileRoot):
             os.makedirs(stateFileRoot)
 
-        runScriptPath = os.path.join(workspaceRoot, "run_singularity_workflow.sh")
-        if not os.path.isfile(runScriptPath):
-            task = CreateRunScript(
-                paths = self.paths,
-                removeSourceFile = self.removeSourceFile,
-                spatialConfig = self.spatialConfig,
-                inputPath = self.inputPath,
-                workingFileRoot = workingFileRoot,
-                stateFileRoot = stateFileRoot,
-                runScriptPath = runScriptPath
-            )
-            yield task
-
         outputFile = {
             "inputPath": self.inputPath,
             "workspaceRoot": workspaceRoot,
             "workingFileRoot": workingFileRoot,
-            "stateFileRoot": stateFileRoot,
-            "runScriptPath": runScriptPath
+            "stateFileRoot": stateFileRoot
         }
 
         with self.output().open("w") as outFile:

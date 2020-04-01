@@ -3,6 +3,8 @@ import logging
 import os
 import workflow_common.common as wc
 import json
+
+from pathlib import Path
 from string import Template
 from workflow_common.SubmitJob import SubmitJob
 from process_s1_basket.SetupWorkDirs import SetupWorkDirs
@@ -16,6 +18,11 @@ class ProcessS1Basket(luigi.Task):
     paths = luigi.DictParameter()
     spatialConfig = luigi.DictParameter()
     testProcessing = luigi.BoolParameter(default = False)
+    removeSourceFile = luigi.BoolParameter()
+    spatialConfig = luigi.DictParameter()
+    workingFileRoot = luigi.Parameter()
+    stateFileRoot = luigi.Parameter()
+    inputPath = luigi.Parameter()
 
     def run(self):
         setupWorkDirs = {}
@@ -31,9 +38,33 @@ class ProcessS1Basket(luigi.Task):
         for productSetup in setupWorkDirs["productSetups"]:
             productName = wc.getProductNameFromPath(productSetup["inputPath"])
 
+            path = Path(self.inputPath)
+            inputDir = path.parent
+            removeSourceFileFlag = "--removeInputFile" if self.removeSourceFile else ""
+
             bsubParams = {
                 "jobWorkingDir" : productSetup["workspaceRoot"],
-                "runScriptPath" : productSetup["runScriptPath"]
+                "workingMount": self.workingFileRoot,
+                "stateMount": self.stateFileRoot,
+                "inputMount" :inputDir,
+                "staticMount" :self.paths["staticDir"],
+                "outputMount": self.paths["outputDir"],
+                "s1ArdContainer": self.paths["singularityImgPath"],
+                "productName": productName,
+                "snapConfigUtmProj": self.spatialConfig["snapConfigUtmProj"],
+                "snapConfigCentralMeridian": self.spatialConfig["snapConfigCentralMeridian"],
+                "snapConfigFalseNorthing": self.spatialConfig["snapConfigFalseNorthing"],
+                "snapRunArguments": self.spatialConfig["snapRunArguments"],
+                "sourceSrs": self.spatialConfig["sourceSrs"],
+                "targetSrs": self.spatialConfig["targetSrs"],
+                "filenameDemData": self.spatialConfig["filenameDemData"],
+                "filenameSrs": self.spatialConfig["filenameSrs"],
+                "demFilename": self.spatialConfig["demFilename"],
+                "demTitle": self.spatialConfig["demTitle"],
+                "metadataProjection": self.spatialConfig["metadataProjection"],
+                "metadataPlaceName": self.spatialConfig["metadataPlaceName"],
+                "metadataParentPlaceName": self.spatialConfig["metadataParentPlaceName"],
+                "removeSourceFileFlag": removeSourceFileFlag
             }
 
             bsub = bsubTemplate.substitute(bsubParams)
