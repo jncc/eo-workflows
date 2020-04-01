@@ -20,7 +20,6 @@ class ProcessS1Basket(luigi.Task):
     testProcessing = luigi.BoolParameter(default = False)
     removeSourceFile = luigi.BoolParameter()
     spatialConfig = luigi.DictParameter()
-    workingFileRoot = luigi.Parameter()
     stateFileRoot = luigi.Parameter()
     inputPath = luigi.Parameter()
 
@@ -42,11 +41,12 @@ class ProcessS1Basket(luigi.Task):
             inputDir = path.parent
             removeSourceFileFlag = "--removeInputFile" if self.removeSourceFile else ""
 
+
             bsubParams = {
                 "jobWorkingDir" : productSetup["workspaceRoot"],
                 "reportMount": self.paths["reportDir"],
                 "databaseMount": self.paths["databaseDir"], 
-                "workingMount": self.workingFileRoot,
+                "workingMount": productSetup["workingFileRoot"],
                 "stateMount": self.stateFileRoot,
                 "inputMount" :inputDir,
                 "staticMount" :self.paths["staticDir"],
