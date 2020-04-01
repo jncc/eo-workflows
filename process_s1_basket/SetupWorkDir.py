@@ -5,7 +5,6 @@ import glob
 import workflow_common.common as wc
 import json
 import re
-from process_s1_basket.CreateRunScript import CreateRunScript
 from os.path import join
 
 log = logging.getLogger('luigi-interface')
