@@ -66,8 +66,7 @@ class ProcessS1Basket(luigi.Task):
                 "metadataProjection": self.spatialConfig["metadataProjection"],
                 "metadataPlaceName": self.spatialConfig["metadataPlaceName"],
                 "metadataParentPlaceName": self.spatialConfig["metadataParentPlaceName"],
-                "removeSourceFileFlag": removeSourceFileFlag,
-                "databaseMount": self.paths["databaseDir"]
+                "removeSourceFileFlag": removeSourceFileFlag
             }
 
             bsub = bsubTemplate.substitute(bsubParams)
