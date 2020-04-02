@@ -21,7 +21,6 @@ class ProcessS1Basket(luigi.Task):
     removeSourceFile = luigi.BoolParameter()
     spatialConfig = luigi.DictParameter()
     reportFileName = luigi.Parameter()
-    dbFileName = luigi.Parameter()
     
 
     def run(self):
@@ -68,8 +67,7 @@ class ProcessS1Basket(luigi.Task):
                 "metadataPlaceName": self.spatialConfig["metadataPlaceName"],
                 "metadataParentPlaceName": self.spatialConfig["metadataParentPlaceName"],
                 "removeSourceFileFlag": removeSourceFileFlag,
-                "reportFileName": self.reportFileName,
-                "dbFileName": self.dbFileName
+                "reportFileName": self.reportFileName
             }
 
             bsub = bsubTemplate.substitute(bsubParams)
