@@ -4,6 +4,7 @@ import os
 import workflow_common.common as wc
 import json
 
+from datetime import datetime
 from pathlib import Path
 from string import Template
 from workflow_common.SubmitJob import SubmitJob
@@ -20,8 +21,6 @@ class ProcessS1Basket(luigi.Task):
     testProcessing = luigi.BoolParameter(default = False)
     removeSourceFile = luigi.BoolParameter()
     spatialConfig = luigi.DictParameter()
-    reportFileName = luigi.Parameter()
-    
 
     def run(self):
         setupWorkDirs = {}
@@ -33,6 +32,8 @@ class ProcessS1Basket(luigi.Task):
         with open(os.path.join(self.paths["templatesDir"], 's1_job_template.bsub'), 'r') as t:
             bsubTemplate = Template(t.read())
 
+        reportFileName = "{}-{}.csv".format(os.path.basename(self.paths["basketDir"]), datetime.now().strftime("%Y%m%d%H%M"))
+
         tasks = []
         for productSetup in setupWorkDirs["productSetups"]:
             productName = wc.getProductNameFromPath(productSetup["inputPath"])
@@ -40,7 +41,6 @@ class ProcessS1Basket(luigi.Task):
             path = Path(productSetup["inputPath"])
             inputDir = path.parent
             removeSourceFileFlag = "--removeInputFile" if self.removeSourceFile else ""
-
 
             bsubParams = {
                 "jobWorkingDir" : productSetup["workspaceRoot"],
@@ -67,7 +67,7 @@ class ProcessS1Basket(luigi.Task):
                 "metadataPlaceName": self.spatialConfig["metadataPlaceName"],
                 "metadataParentPlaceName": self.spatialConfig["metadataParentPlaceName"],
                 "removeSourceFileFlag": removeSourceFileFlag,
-                "reportFileName": self.reportFileName
+                "reportFileName": reportFileName
             }
 
             bsub = bsubTemplate.substitute(bsubParams)
