@@ -20,6 +20,9 @@ class ProcessS1Basket(luigi.Task):
     testProcessing = luigi.BoolParameter(default = False)
     removeSourceFile = luigi.BoolParameter()
     spatialConfig = luigi.DictParameter()
+    reportFileName = luigi.Parameter()
+    dbFileName = luigi.Parameter()
+    
 
     def run(self):
         setupWorkDirs = {}
@@ -64,7 +67,9 @@ class ProcessS1Basket(luigi.Task):
                 "metadataProjection": self.spatialConfig["metadataProjection"],
                 "metadataPlaceName": self.spatialConfig["metadataPlaceName"],
                 "metadataParentPlaceName": self.spatialConfig["metadataParentPlaceName"],
-                "removeSourceFileFlag": removeSourceFileFlag
+                "removeSourceFileFlag": removeSourceFileFlag,
+                "reportFileName": self.reportFileName,
+                "dbFileName": self.dbFileName
             }
 
             bsub = bsubTemplate.substitute(bsubParams)
