@@ -1,6 +1,5 @@
 # Run ARCSI processing task
-
-#SBATCH -d 'afterok:$upstreamJobId'
+SBATCH -d 'afterok:$upstreamJobId'
 #SBATCH -p par-multi
 # #SBATCH -C 
 # #BSUB -R "select[hname!=host283]"

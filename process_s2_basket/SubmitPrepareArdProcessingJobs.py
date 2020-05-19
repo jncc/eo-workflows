@@ -29,8 +29,8 @@ class SubmitPrepareArdProcessingJobs(luigi.Task):
 
         basketDir = self.paths["basketDir"]
 
-        with open(os.path.join(self.paths["templatesDir"], 's2_mpi_PrepareArdProcessing_job_template.bsub'), 'r') as t:
-            bsubTemplate = Template(t.read())
+        with open(os.path.join(self.paths["templatesDir"], 's2_mpi_PrepareArdProcessing_job_template.sbatch'), 'r') as t:
+            sbatchTemplate = Template(t.read())
 
         tasks = []
         for swathSetup in setupWorkDirs["swathSetups"]:
@@ -43,7 +43,7 @@ class SubmitPrepareArdProcessingJobs(luigi.Task):
             if self.arcsiCmdTemplate is not None:
                 arcsiCmdTemplate = "--arcsiCmdTemplate={}".format(self.arcsiCmdTemplate)
 
-            bsubParams = {
+            sbatchParams = {
                 "jobWorkingDir" : swathSetup["workspaceRoot"],
                 "workingMount" : swathSetup["workingFileRoot"],
                 "stateMount" : swathSetup["stateFileRoot"],
@@ -57,16 +57,16 @@ class SubmitPrepareArdProcessingJobs(luigi.Task):
                 "arcsiCmdTemplate" : arcsiCmdTemplate
             }
 
-            bsub = bsubTemplate.substitute(bsubParams)
-            bsubScriptPath = os.path.join(swathSetup["workspaceRoot"], "submit_PrepareArdProcessing_job_for_{}.bsub".format(productName))
+            sbatch = sbatchTemplate.substitute(sbatchParams)
+            sbatchScriptPath = os.path.join(swathSetup["workspaceRoot"], "submit_PrepareArdProcessing_job_for_{}.sbatch".format(productName))
 
-            with open(bsubScriptPath, 'w') as bsubScriptFile:
-                bsubScriptFile.write(bsub)
+            with open(sbatchScriptPath, 'w') as sbatchScriptFile:
+                sbatchScriptFile.write(sbatch)
 
             tasks.append(SubmitJob(
                 paths = self.paths,
                 productName = productName,
-                bsubScriptPath = bsubScriptPath,
+                sbatchScriptPath = sbatchScriptPath,
                 testProcessing = self.testProcessing
             ))
         yield tasks
