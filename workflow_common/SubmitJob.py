@@ -34,7 +34,7 @@ class SubmitJob(luigi.Task):
                 outputString = "JOBID     USER    STAT  QUEUE      FROM_HOST   EXEC_HOST   JOB_NAME   SUBMIT_TIME"\
                                 +str(randomJobId)+"   test001  RUN   short-serial jasmin-sci1 16*host290. my-job1 Nov 16 16:51"
             else:
-                sbatchCmd = "srun < {}".format(self.sbatchScriptPath)
+                sbatchCmd = "sbatch {}".format(self.sbatchScriptPath)
                 log.info("Submitting job using command: %s", sbatchCmd)
                 output = subprocess.check_output(
                     sbatchCmd,
