@@ -1,3 +1,4 @@
+#!/bin/bash
 # Run post-ARCSI processing tasks
 #SBATCH -d 'afterok:$upstreamJobId'
 #SBATCH -p short-serial

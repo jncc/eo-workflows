@@ -1,3 +1,4 @@
+#!/bin/bash
 # Run pre-ARCSI processing tasks
 #SBATCH -p short-serial
 #SBATCH --time-min=01:00

@@ -1,3 +1,4 @@
+#!/bin/bash
 # Run workflow serially
 #SBATCH -p long-serial
 #SBATCH --time=1-00:00:00

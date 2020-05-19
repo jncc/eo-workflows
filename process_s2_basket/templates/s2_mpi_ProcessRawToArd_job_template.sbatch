@@ -1,3 +1,4 @@
+#!/bin/bash
 # Run ARCSI processing task
 SBATCH -d 'afterok:$upstreamJobId'
 #SBATCH -p par-multi
