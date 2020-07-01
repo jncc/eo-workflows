@@ -13,4 +13,4 @@ SBATCH -d 'afterok:$upstreamJobId'
 #SBATCH -A defra_eo_jncc_s2_ard
 
 source /gws/smf/j04/defra_eo/eo-workflows/eo-workflows-venv/bin/activate
-LUIGI_CONFIG_PATH='/gws/smf/j04/defra_eo/eo-workflows/luigi.cfg' PYTHONPATH='/gws/smf/j04/defra_eo/eo-workflows' luigi --module process_s2_basket ProcessRawToArd --singularityDir $singularityDir --singularityImgPath $arcsiContainer --workingMount $workingMount --stateMount $stateMount --inputMount $inputMount --staticMount $staticMount --platformMpiMount $platformMpiMount $testProcessing --local-scheduler
+LUIGI_CONFIG_PATH='/gws/smf/j04/defra_eo/eo-workflows/luigi.cfg' PYTHONPATH='/gws/smf/j04/defra_eo/eo-workflows' luigi --module process_s2_basket ProcessRawToArd --singularityDir $singularityDir --singularityImgPath $arcsiContainer --workingMount $workingMount --stateMount $stateMount --staticMount $staticMount --platformMpiMount $platformMpiMount $testProcessing --local-scheduler
