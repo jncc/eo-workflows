@@ -38,7 +38,6 @@ stateMount = /path/to/state/dir
 inputMount = /path/to/input/dir
 staticMount = /path/to/static/dir
 outputMount = /path/to/output/dir
-platformMpiMount = /path/to/platform_mpi/dir
 testProcessing = False
 
 [ProcessS2BasketMpi]
@@ -51,7 +50,6 @@ paths = {
     "singularityDir":"{{ singularityDir }}",
     "singularityImgPath":"{{ singularityImgPath }}",
     "arcsiMpiBaseImg":"{{ arcsiMpiBaseImg }}"
-    "platformMpiDir":"{{ platformMpiDir }}",
     "templatesDir":"{{ templatesDir }}",
     "reportDir":"{{ reportDir }}",
     "databaseDir":"{{ databaseDir }}"

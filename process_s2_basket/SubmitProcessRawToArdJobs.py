@@ -59,7 +59,6 @@ class SubmitProcessRawToArdJobs(luigi.Task):
                 "stateMount" : swathSetup["stateFileRoot"],
                 "inputMount" : swathSetup["swathDir"],
                 "staticMount" : self.paths["staticDir"],
-                "platformMpiMount" : self.paths["platformMpiDir"],
                 "singularityDir": self.paths["singularityDir"],
                 "arcsiContainer": self.paths["arcsiMpiBaseImg"],
                 "testProcessing": testProcessing
