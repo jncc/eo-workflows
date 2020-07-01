@@ -17,7 +17,6 @@ class ProcessRawToArd(luigi.Task):
     stateMount = luigi.Parameter()
     inputMount = luigi.Parameter()
     staticMount = luigi.Parameter()
-    platformMpiMount = luigi.Parameter()
     testProcessing = luigi.BoolParameter(default = False)
 
     def run(self):
@@ -28,13 +27,12 @@ class ProcessRawToArd(luigi.Task):
         expectedProducts = prepareArdProcessing["expectedProducts"]
         arcsiMpiRunScriptPath = os.path.join(self.workingMount, "run_arcsimpi.sh")
 
-        a = "mpirun.lotus {}/singularity exec --bind {}:/working --bind {}:/input --bind {}:/static --bind {}:/opt/platform_mpi {}" \
+        a = "mpirun {}/singularity exec --bind {}:/working --bind {}:/input --bind {}:/static {}" \
             .format(
                 self.singularityDir,
                 self.workingMount,
                 self.inputMount,
                 self.staticMount,
-                self.platformMpiMount,
                 self.singularityImgPath
             )
         b = prepareArdProcessing["arcsiCmd"]
