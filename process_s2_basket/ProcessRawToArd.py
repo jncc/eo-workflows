@@ -37,11 +37,11 @@ class ProcessRawToArd(luigi.Task):
 
         cmd = "{} {}".format(a, b)
 
-        lines = ["module load eb/OpenMPI/gcc/4.0.0\n"]
-        lines.append(cmd)
+        # lines = ["module load eb/OpenMPI/gcc/4.0.0\n"]
+        # lines.append(cmd)
 
         with open(arcsiMpiRunScriptPath, 'w') as arcsiMpiRunFile:
-            arcsiMpiRunFile.writelines(lines)
+            arcsiMpiRunFile.write(cmd)
 
         st = os.stat(arcsiMpiRunScriptPath)
         os.chmod(arcsiMpiRunScriptPath, st.st_mode | 0o110 )
