@@ -12,6 +12,8 @@ SBATCH -d 'afterok:$upstreamJobId'
 #SBATCH -e $jobWorkingDir/%J_ProcessRawToArd.err
 #SBATCH -A defra_eo_jncc_s2_ard
 
+module load eb/OpenMPI/gcc/4.0.0
+
 source /gws/smf/j04/defra_eo/eo-workflows/eo-workflows-venv/bin/activate
 LUIGI_CONFIG_PATH='/gws/smf/j04/defra_eo/eo-workflows/luigi.cfg' PYTHONPATH='/gws/smf/j04/defra_eo/eo-workflows' luigi --module process_s2_basket ProcessRawToArd --singularityDir $singularityDir --singularityImgPath $arcsiContainer --workingMount $workingMount --stateMount $stateMount --staticMount $staticMount $testProcessing --local-scheduler
 source $workingMount/run_arcsimpi.sh
