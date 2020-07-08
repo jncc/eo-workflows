@@ -37,27 +37,25 @@ class ProcessRawToArd(luigi.Task):
 
         cmd = "{} {}".format(a, b)
 
-        # lines = ["module load eb/OpenMPI/gcc/4.0.0\n"]
-        # lines.append(cmd)
+        lines = ['module load eb/OpenMPI/gcc/4.0.0\n', cmd]
 
         with open(arcsiMpiRunScriptPath, 'w') as arcsiMpiRunFile:
-            arcsiMpiRunFile.write(cmd)
+            arcsiMpiRunFile.writelines(lines)
 
         st = os.stat(arcsiMpiRunScriptPath)
         os.chmod(arcsiMpiRunScriptPath, st.st_mode | 0o110 )
 
         log.info("Created run_arcsimpi.sh with command " + cmd)
 
-        # if not self.testProcessing:
-        #     try:
-        #         log.info("Running " + arcsiMpiRunScriptPath)
-        #         subprocess.run(arcsiMpiRunScriptPath, check=True, stderr=subprocess.STDOUT, shell=True)
-        #     except subprocess.CalledProcessError as e:
-        #         errStr = "command '{}' return with error (code {}): {}".format(e.cmd, e.returncode, e.output)
-        #         log.error(errStr)
-        #         raise RuntimeError(errStr)
-        # else:
-        if self.testProcessing:
+        if not self.testProcessing:
+            try:
+                log.info("Running " + arcsiMpiRunScriptPath)
+                subprocess.run(arcsiMpiRunScriptPath, check=True, stderr=subprocess.STDOUT, shell=True)
+            except subprocess.CalledProcessError as e:
+                errStr = "command '{}' return with error (code {}): {}".format(e.cmd, e.returncode, e.output)
+                log.error(errStr)
+                raise RuntimeError(errStr)
+        else:
             log.info("Generating mock output files")
             for expectedProduct in expectedProducts["products"]:
                 for filePattern in expectedProduct["files"]:
