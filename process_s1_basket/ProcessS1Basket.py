@@ -71,7 +71,7 @@ class ProcessS1Basket(luigi.Task):
             }
 
             bsub = bsubTemplate.substitute(bsubParams)
-            bsubScriptPath = os.path.join(productSetup["workspaceRoot"], "process_s1_ard.bsub")
+            bsubScriptPath = os.path.join(productSetup["workspaceRoot"], "process_s1_ard.sbatch")
 
             with open(bsubScriptPath, 'w') as bsubScriptFile:
                 bsubScriptFile.write(bsub)
