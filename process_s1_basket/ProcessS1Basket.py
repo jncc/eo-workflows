@@ -29,7 +29,7 @@ class ProcessS1Basket(luigi.Task):
 
         basketDir = self.paths["basketDir"]
 
-        with open(os.path.join(self.paths["templatesDir"], 's1_job_template.bsub'), 'r') as t:
+        with open(os.path.join(self.paths["templatesDir"], 's1_job_template.sbatch'), 'r') as t:
             bsubTemplate = Template(t.read())
 
         reportFileName = "{}-{}.csv".format(os.path.basename(self.paths["basketDir"]), datetime.now().strftime("%Y%m%d%H%M"))
