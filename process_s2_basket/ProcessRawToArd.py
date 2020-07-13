@@ -47,15 +47,15 @@ class ProcessRawToArd(luigi.Task):
 
         log.info("Created run_arcsimpi.sh with command " + cmd)
 
-        # if not self.testProcessing:
-        #     try:
-        #         log.info("Running " + arcsiMpiRunScriptPath)
-        #         subprocess.run(arcsiMpiRunScriptPath, check=True, stderr=subprocess.STDOUT, shell=True)
-        #     except subprocess.CalledProcessError as e:
-        #         errStr = "command '{}' return with error (code {}): {}".format(e.cmd, e.returncode, e.output)
-        #         log.error(errStr)
-        #         raise RuntimeError(errStr)
-        # else:
+        if not self.testProcessing:
+            try:
+                log.info("Running " + arcsiMpiRunScriptPath)
+                subprocess.run(arcsiMpiRunScriptPath, check=True, stderr=subprocess.STDOUT, shell=True)
+            except subprocess.CalledProcessError as e:
+                errStr = "command '{}' return with error (code {}): {}".format(e.cmd, e.returncode, e.output)
+                log.error(errStr)
+                raise RuntimeError(errStr)
+        else:
 
         if self.testProcessing:
             log.info("Generating mock output files")
