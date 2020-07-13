@@ -56,8 +56,6 @@ class ProcessRawToArd(luigi.Task):
                 log.error(errStr)
                 raise RuntimeError(errStr)
         else:
-
-        if self.testProcessing:
             log.info("Generating mock output files")
             for expectedProduct in expectedProducts["products"]:
                 for filePattern in expectedProduct["files"]:
