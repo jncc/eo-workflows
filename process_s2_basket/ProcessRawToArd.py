@@ -16,7 +16,6 @@ class ProcessRawToArd(luigi.Task):
     workingMount = luigi.Parameter()
     stateMount = luigi.Parameter()
     staticMount = luigi.Parameter()
-    platformMpiMount = luigi.Parameter()
     testProcessing = luigi.BoolParameter(default = False)
 
     def run(self):
@@ -27,20 +26,21 @@ class ProcessRawToArd(luigi.Task):
         expectedProducts = prepareArdProcessing["expectedProducts"]
         arcsiMpiRunScriptPath = os.path.join(self.workingMount, "run_arcsimpi.sh")
 
-        a = "mpirun.lotus {}/singularity exec --bind {}:/working --bind {}:/static --bind {}:/opt/platform_mpi {}" \
+        a = "mpirun --mca plm_base_verbose 100 {}/singularity exec --bind {}:/working --bind {}:/static --bind /apps/eb/software:/apps/eb/software {}" \
             .format(
                 self.singularityDir,
                 self.workingMount,
                 self.staticMount,
-                self.platformMpiMount,
                 self.singularityImgPath
             )
         b = prepareArdProcessing["arcsiCmd"]
 
         cmd = "{} {}".format(a, b)
 
+        lines = ['module load eb/OpenMPI/gcc/4.0.0\n', cmd]
+
         with open(arcsiMpiRunScriptPath, 'w') as arcsiMpiRunFile:
-            arcsiMpiRunFile.write(cmd)
+            arcsiMpiRunFile.writelines(lines)
 
         st = os.stat(arcsiMpiRunScriptPath)
         os.chmod(arcsiMpiRunScriptPath, st.st_mode | 0o110 )
@@ -56,7 +56,6 @@ class ProcessRawToArd(luigi.Task):
                 log.error(errStr)
                 raise RuntimeError(errStr)
         else:
-
             log.info("Generating mock output files")
             for expectedProduct in expectedProducts["products"]:
                 for filePattern in expectedProduct["files"]:

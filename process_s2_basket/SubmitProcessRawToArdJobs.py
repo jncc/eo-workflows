@@ -33,8 +33,8 @@ class SubmitProcessRawToArdJobs(luigi.Task):
 
         basketDir = self.paths["basketDir"]
 
-        with open(os.path.join(self.paths["templatesDir"], 's2_mpi_ProcessRawToArd_job_template.bsub'), 'r') as t:
-            bsubTemplate = Template(t.read())
+        with open(os.path.join(self.paths["templatesDir"], 's2_mpi_ProcessRawToArd_job_template.sbatch'), 'r') as t:
+            sbatchTemplate = Template(t.read())
 
         tasks = []
         for swathSetup in setupWorkDirs["swathSetups"]:
@@ -51,7 +51,7 @@ class SubmitProcessRawToArdJobs(luigi.Task):
 
             testProcessing = "--testProcessing" if self.testProcessing else ""
 
-            bsubParams = {
+            sbatchParams = {
                 "upstreamJobId": upstreamJobId,
                 "nodes": noOfGranules + 1,
                 "jobWorkingDir" : swathSetup["workspaceRoot"],
@@ -59,22 +59,21 @@ class SubmitProcessRawToArdJobs(luigi.Task):
                 "stateMount" : swathSetup["stateFileRoot"],
                 "inputMount" : swathSetup["swathDir"],
                 "staticMount" : self.paths["staticDir"],
-                "platformMpiMount" : self.paths["platformMpiDir"],
                 "singularityDir": self.paths["singularityDir"],
                 "arcsiContainer": self.paths["arcsiMpiBaseImg"],
                 "testProcessing": testProcessing
             }
 
-            bsub = bsubTemplate.substitute(bsubParams)
-            bsubScriptPath = os.path.join(swathSetup["workspaceRoot"], "submit_ProcessRawToArd_job_for_{}.bsub".format(productName))
+            sbatch = sbatchTemplate.substitute(sbatchParams)
+            sbatchScriptPath = os.path.join(swathSetup["workspaceRoot"], "submit_ProcessRawToArd_job_for_{}.sbatch".format(productName))
 
-            with open(bsubScriptPath, 'w') as bsubScriptFile:
-                bsubScriptFile.write(bsub)
+            with open(sbatchScriptPath, 'w') as sbatchScriptFile:
+                sbatchScriptFile.write(sbatch)
 
             tasks.append(SubmitJob(
                 paths = self.paths,
                 productName = productName,
-                bsubScriptPath = bsubScriptPath,
+                sbatchScriptPath = sbatchScriptPath,
                 testProcessing = self.testProcessing
             ))
         yield tasks

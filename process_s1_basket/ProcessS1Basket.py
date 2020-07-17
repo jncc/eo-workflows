@@ -29,8 +29,8 @@ class ProcessS1Basket(luigi.Task):
 
         basketDir = self.paths["basketDir"]
 
-        with open(os.path.join(self.paths["templatesDir"], 's1_job_template.bsub'), 'r') as t:
-            bsubTemplate = Template(t.read())
+        with open(os.path.join(self.paths["templatesDir"], 's1_job_template.sbatch'), 'r') as t:
+            sbatchTemplate = Template(t.read())
 
         reportFileName = "{}-{}.csv".format(os.path.basename(self.paths["basketDir"]), datetime.now().strftime("%Y%m%d%H%M"))
 
@@ -42,7 +42,7 @@ class ProcessS1Basket(luigi.Task):
             inputDir = path.parent
             removeSourceFileFlag = "--removeInputFile" if self.removeSourceFile else ""
 
-            bsubParams = {
+            sbatchParams = {
                 "jobWorkingDir" : productSetup["workspaceRoot"],
                 "reportMount": self.paths["reportDir"],
                 "databaseMount": self.paths["databaseDir"], 
@@ -70,16 +70,16 @@ class ProcessS1Basket(luigi.Task):
                 "reportFileName": reportFileName
             }
 
-            bsub = bsubTemplate.substitute(bsubParams)
-            bsubScriptPath = os.path.join(productSetup["workspaceRoot"], "process_s1_ard.bsub")
+            bsub = sbatchTemplate.substitute(sbatchParams)
+            sbatchScriptPath = os.path.join(productSetup["workspaceRoot"], "process_s1_ard.sbatch")
 
-            with open(bsubScriptPath, 'w') as bsubScriptFile:
-                bsubScriptFile.write(bsub)
+            with open(sbatchScriptPath, 'w') as sbatchScriptFile:
+                sbatchScriptFile.write(bsub)
 
             task = SubmitJob(
                 paths = self.paths,
                 productName = productName,
-                bsubScriptPath = bsubScriptPath,
+                sbatchScriptPath = sbatchScriptPath,
                 testProcessing = self.testProcessing
             )
 
