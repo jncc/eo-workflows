@@ -26,6 +26,7 @@ class ProcessS2BasketMpi(luigi.Task):
     maxCogProcesses = luigi.IntParameter()
     testProcessing = luigi.BoolParameter(default = False)
     arcsiCmdTemplate = luigi.OptionalParameter(default=None)
+    oldFilenameDateThreshold = luigi.DateParameter()
 
     def run(self):
         setupWorkDirs = {}
@@ -78,7 +79,8 @@ class ProcessS2BasketMpi(luigi.Task):
                 "maxCogProcesses": self.maxCogProcesses,
                 "reportFileName": reportFileName,
                 "reportMount": self.paths["reportDir"],
-                "databaseMount": self.paths["databaseDir"]
+                "databaseMount": self.paths["databaseDir"],
+                "oldFilenameDateThreshold": self.oldFilenameDateThreshold
             }
 
             sbatch = sbatchTemplate.substitute(sbatchParams)
