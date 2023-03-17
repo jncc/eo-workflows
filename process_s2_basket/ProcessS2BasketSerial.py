@@ -24,6 +24,7 @@ class ProcessS2BasketSerial(luigi.Task):
     metadataTemplate = luigi.OptionalParameter(default=None)
     arcsiCmdTemplate = luigi.OptionalParameter(default=None)
     maxCogProcesses = luigi.IntParameter()
+    oldFilenameDateThreshold = luigi.DateParameter()
     testProcessing = luigi.BoolParameter(default = False)
 
     def run(self):
@@ -77,7 +78,8 @@ class ProcessS2BasketSerial(luigi.Task):
                 "arcsiCmdTemplate": arcsiCmdTemplate,
                 "reportFileName": reportFileName,
                 "reportMount": self.paths["reportDir"],
-                "databaseMount": self.paths["databaseDir"]
+                "databaseMount": self.paths["databaseDir"],
+                "oldFilenameDateThreshold": self.oldFilenameDateThreshold
             }
 
             bsub = bsubTemplate.substitute(bsubParams)
