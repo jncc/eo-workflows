@@ -26,7 +26,7 @@ class ProcessRawToArd(luigi.Task):
         expectedProducts = prepareArdProcessing["expectedProducts"]
         arcsiMpiRunScriptPath = os.path.join(self.workingMount, "run_arcsimpi.sh")
 
-        a = "mpirun --mca plm_base_verbose 100 {}/singularity exec --bind {}:/working --bind {}:/static --bind /apps:/apps {}" \
+        a = "mpirun {}/singularity exec --bind {}:/working --bind {}:/static --bind /apps:/apps {}" \
             .format(
                 self.singularityDir,
                 self.workingMount,
@@ -37,7 +37,7 @@ class ProcessRawToArd(luigi.Task):
 
         cmd = "{} {}".format(a, b)
 
-        lines = ['module load eb/OpenMPI/gcc/4.0.0\n', cmd]
+        lines = ['module load oneapi/mpi/24.2.0\n', cmd]
 
         with open(arcsiMpiRunScriptPath, 'w') as arcsiMpiRunFile:
             arcsiMpiRunFile.writelines(lines)
